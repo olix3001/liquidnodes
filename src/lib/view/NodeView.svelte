@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type NodeTree from '$lib/core/nodeTree.ts';
+	import InterfaceView from './InterfaceView.svelte';
 
 	export let tree: NodeTree;
 	export let nodeID: string;
@@ -37,6 +38,19 @@
 		<p class="liquidnodes_node_title">{mtype.title}</p>
 		<p class="liquidnodes_node_desc">{mtype.description}</p>
 	</div>
+
+	<div class="liquidnodes_node_io">
+		<div class="liquidnodes_node_outputs">
+			{#each Object.values(node.output_interfaces) as inter}
+				<InterfaceView {tree} {inter} />
+			{/each}
+		</div>
+		<div class="liquidnodes_node_inputs">
+			{#each Object.values(node.input_interfaces) as inter}
+				<InterfaceView {tree} {inter} isOutput={false} />
+			{/each}
+		</div>
+	</div>
 </div>
 
 <!-- Moving nodes -->
@@ -49,7 +63,7 @@
 		border-radius: 10px;
 		box-shadow: 3px 2px 5px var(--liquidnodes-node-shadow);
 		padding: 3px;
-		min-width: 125px;
+		min-width: 150px;
 	}
 
 	.liquidnodes_node_header {
@@ -77,5 +91,9 @@
 		font-size: xx-small;
 		color: var(--liquidnodes-node-detail);
 		text-align: center;
+	}
+
+	.liquidnodes_node_io {
+		padding-bottom: 1em;
 	}
 </style>

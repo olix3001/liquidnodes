@@ -1,10 +1,28 @@
+import type { ComponentType, SvelteComponent, SvelteComponentTyped } from 'svelte';
 import { type IPosition } from './common.js';
+import type NodeTree from './nodeTree.ts';
 
-export interface INodeInterface<Ty> {
+export interface INodeInterface<Ty, Props> {
 	type: NodeInterfaceType<Ty>;
 	title: string;
 	hasPort: boolean;
+	displayDefaultTitle: boolean;
+	component?: NodeInterfaceComponent<Ty, Props>;
+	value?: Ty;
+	props: Props;
+	hideWhenConnected: boolean;
 }
+export type NodeInterfaceComponent<Ty, Props> = ComponentType<
+	SvelteComponent<
+		{
+			tree: NodeTree;
+			inter: INodeInterface<Ty, Props>;
+		},
+		{},
+		{}
+	>
+>;
+
 export class NodeInterfaceType<Ty> {
 	declare readonly _type: Ty;
 	id: string;
@@ -24,10 +42,10 @@ export interface INode<Input extends INodeIO, Output extends INodeIO> {
 	title: string;
 	description: string;
 	inputs: {
-		[K in keyof Input]: () => INodeInterface<Input[K]>;
+		[K in keyof Input]: () => INodeInterface<Input[K], any>;
 	};
 	outputs: {
-		[K in keyof Output]: () => INodeInterface<Output[K]>;
+		[K in keyof Output]: () => INodeInterface<Output[K], any>;
 	};
 
 	calculate(inputs: Input): Output;
@@ -36,6 +54,12 @@ export interface INode<Input extends INodeIO, Output extends INodeIO> {
 export default class Node {
 	public type_id: string;
 	public position: IPosition;
+	public input_interfaces: {
+		[key: string]: INodeInterface<any, any>;
+	} = {};
+	public output_interfaces: {
+		[key: string]: INodeInterface<any, any>;
+	} = {};
 
 	constructor(type_id: string, position?: IPosition) {
 		this.type_id = type_id;

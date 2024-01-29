@@ -18,7 +18,15 @@ export default class NodeTree {
 
 	insertNodeAt(type: string, position: IPosition): string {
 		let uid = uuidv4();
-		this.nodes[uid] = new Node(type, position);
+		let node = new Node(type, position);
+		const ty = this.registered_node_types[type];
+		for (let key of Object.keys(ty.inputs)) {
+			node.input_interfaces[key] = ty.inputs[key]();
+		}
+		for (let key of Object.keys(ty.outputs)) {
+			node.output_interfaces[key] = ty.outputs[key]();
+		}
+		this.nodes[uid] = node;
 		return uid;
 	}
 }
