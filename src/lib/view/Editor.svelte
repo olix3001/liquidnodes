@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { IPosition } from '$lib/core/common.js';
 	import NodeTree from '$lib/core/nodeTree.js';
+	import NodeView from './NodeView.svelte';
 
-	export let nodeTree: NodeTree;
+	export let tree: NodeTree;
 
 	let EDITOR: HTMLDivElement;
 
@@ -11,18 +12,15 @@
 
 	let isDragging: boolean = false;
 
-	$: transform = `transform: 
-		translate(${editorOffset.x}px, ${editorOffset.y}px)
-		scale(${editorZoom})
-		`;
+	$: transform = `transform: translate(${editorOffset.x}px, ${editorOffset.y}px) scale(${editorZoom});`;
 
 	function handleMouseDown(event: MouseEvent) {
-		if (event.button == 0) {
+		if (event.button == 1) {
 			isDragging = true;
 		}
 	}
 	function handleMouseUp(event: MouseEvent) {
-		if (event.button == 0) {
+		if (event.button == 1) {
 			isDragging = false;
 		}
 	}
@@ -87,6 +85,13 @@
 		</defs>
 		<rect width="100%" height="100%" fill="url(#grid)"></rect>
 	</svg>
+
+	<div class="liquidnodes_editor_main" style={transform}>
+		{#each Object.keys(tree.nodes) as node (node)}
+			<!-- <p style="color: white">{node}</p> -->
+			<NodeView {tree} nodeID={node} zoom={editorZoom} />
+		{/each}
+	</div>
 </div>
 
 <style>
@@ -94,6 +99,7 @@
 		position: relative;
 		width: 100%;
 		height: 100%;
+		overflow: clip;
 	}
 	.liquidnodes_editor_background {
 		/* Disable interactions with the background */
@@ -106,5 +112,13 @@
 		width: 100%;
 		height: 100%;
 		background-color: var(--liquidnodes-background-color);
+	}
+
+	.liquidnodes_editor_main {
+		z-index: 100;
+		position: absolute;
+		top: 0;
+		left: 0;
+		transform-origin: top left;
 	}
 </style>

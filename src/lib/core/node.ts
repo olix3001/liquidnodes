@@ -2,28 +2,32 @@ import { type IPosition } from './common.js';
 
 export interface INodeInterface<Ty> {
 	type: NodeInterfaceType<Ty>;
+	title: string;
+	hasPort: boolean;
 }
 export class NodeInterfaceType<Ty> {
 	declare readonly _type: Ty;
 	id: string;
+	color: string = '#fff';
 
 	constructor(id: string) {
 		this.id = id;
 	}
 }
 
-interface INodeIO {
+export interface INodeIO {
 	[key: string]: any;
 }
 export interface INode<Input extends INodeIO, Output extends INodeIO> {
 	category: string;
 	id: string;
 	title: string;
+	description: string;
 	inputs: {
-		[K in keyof Input]: INodeInterface<Input[K]>;
+		[K in keyof Input]: () => INodeInterface<Input[K]>;
 	};
 	outputs: {
-		[K in keyof Output]: INodeInterface<Output[K]>;
+		[K in keyof Output]: () => INodeInterface<Output[K]>;
 	};
 
 	calculate(inputs: Input): Output;

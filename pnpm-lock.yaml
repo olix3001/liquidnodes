@@ -1,5 +1,13 @@
 lockfileVersion: '6.0'
 
+dependencies:
+  '@types/uuid':
+    specifier: ^9.0.8
+    version: 9.0.8
+  uuid:
+    specifier: ^9.0.1
+    version: 9.0.1
+
 devDependencies:
   '@sveltejs/adapter-auto':
     specifier: ^3.0.0
@@ -607,6 +615,10 @@ packages:
   /@types/semver@7.5.6:
     resolution: {integrity: sha512-dn1l8LaMea/IjDoHNd9J52uBbInB796CDffS6VdIxvqYCPSG0V0DzHp76GpaWnlhg88uYyPbXCDIowa86ybd5A==}
     dev: true
+
+  /@types/uuid@9.0.8:
+    resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
+    dev: false
 
   /@typescript-eslint/eslint-plugin@6.0.0(@typescript-eslint/parser@6.0.0)(eslint@8.56.0)(typescript@5.0.2):
     resolution: {integrity: sha512-xuv6ghKGoiq856Bww/yVYnXGsKa588kY3M0XK7uUW/3fJNNULKRfZfSBkMTSpqGG/8ZCXCadfh8G/z/B4aqS/A==}
@@ -2142,6 +2154,11 @@ packages:
   /util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
     dev: true
+
+  /uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    hasBin: true
+    dev: false
 
   /vite@5.0.11:
     resolution: {integrity: sha512-XBMnDjZcNAw/G1gEiskiM1v6yzM4GE5aMGvhWTlHAYYhxb7S3/V1s3m2LDHa8Vh6yIWYYB0iJwsEaS523c4oYA==}

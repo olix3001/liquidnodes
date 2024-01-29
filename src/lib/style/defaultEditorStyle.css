@@ -1,4 +1,12 @@
 * {
+	font-family: 'Roboto', sans-serif;
+
 	--liquidnodes-background-color: #070808;
 	--liquidnodes-background-dots: #202121;
+
+	--liquidnodes-node-background: #1f1f1f;
+	--liquidnodes-node-box: #0f0f0f;
+	--liquidnodes-node-text: #fff;
+	--liquidnodes-node-detail: #585757;
+	--liquidnodes-node-shadow: #000;
 }
