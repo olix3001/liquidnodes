@@ -3,10 +3,38 @@
 	import NodeTree from '$lib/core/nodeTree.ts';
 	import { type INode, type INodeInterface } from '$lib/core/node.ts';
 	import '$lib/style/defaultEditorStyle.css';
-	import { NodeInterface, NumberInterface } from '$lib/core/interfaces.ts';
+	import { BaseTypes, NodeInterface, NumberInterface } from '$lib/core/interfaces.ts';
 
 	let tree = new NodeTree();
 
+	class MySecondNodeType
+		implements
+			INode<
+				{
+					string: string;
+				},
+				{
+					number: number;
+				}
+			>
+	{
+		category = 'Test';
+		id = 'myothernode';
+		title = 'Convert';
+		description = 'Convert string to number';
+		inputs = {
+			string: () => new NodeInterface('String', BaseTypes.STRING)
+		};
+		outputs = {
+			number: () => new NodeInterface('Number', BaseTypes.NUMBER)
+		};
+
+		calculate({ string }: { string: string }): { number: number } {
+			return {
+				number: parseInt(string)
+			};
+		}
+	}
 	class MyNodeType
 		implements
 			INode<
@@ -28,7 +56,7 @@
 			b: () => new NumberInterface('Number')
 		};
 		outputs = {
-			result: () => new NodeInterface<number>('Result')
+			result: () => new NodeInterface<number>('Result', BaseTypes.NUMBER)
 		};
 
 		calculate({ a, b }: { a: number; b: number }): { result: number } {
@@ -39,9 +67,10 @@
 	}
 
 	tree.registerNodeType(new MyNodeType());
+	tree.registerNodeType(new MySecondNodeType());
 	let a = tree.insertNodeAt('mytestnode', { x: 0, y: 0 });
 	let b = tree.insertNodeAt('mytestnode', { x: 250, y: 0 });
-	let c = tree.insertNodeAt('mytestnode', { x: 100, y: 250 });
+	let c = tree.insertNodeAt('myothernode', { x: 100, y: 250 });
 </script>
 
 <div class="screen">

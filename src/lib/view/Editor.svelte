@@ -115,7 +115,7 @@
 				<ConnectionPath {tree} connectionID={connectionUID} />
 			{/each}
 
-			<CurrentlyHeldConnectionPath />
+			<CurrentlyHeldConnectionPath {tree} />
 		</svg>
 		{#each Object.keys(tree.nodes) as node (node)}
 			<!-- <p style="color: white">{node}</p> -->

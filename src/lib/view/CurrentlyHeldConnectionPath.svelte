@@ -4,31 +4,53 @@
 		type IEditorContext,
 		EDITOR_CONTEXT,
 		createConnectionSplinePath,
-		CustomRectPosition
+		CustomRectPosition,
+		getPortPositions,
+		type IPortPositions
 	} from '$lib/core/editor.ts';
+	import type NodeTree from '$lib/core/nodeTree.ts';
+
+	export let tree: NodeTree;
 
 	let context = getContext<IEditorContext>(EDITOR_CONTEXT);
 
 	let path: string | null;
+	let color = '#fff';
 	const updatePath = (e: MouseEvent) => {
 		if (!context.currently_held) return;
 		let held = context.currently_held;
 		if (context.currently_held.isOutput) {
 			path = createConnectionSplinePath(
-				context.ports[`out_${held.node}_${held.port}`],
-				new CustomRectPosition(e.clientX, e.clientY)
+				getPortPositions(
+					context.ports[`out_${held.node}_${held.port}`],
+					new CustomRectPosition(e.clientX, e.clientY)
+				) as IPortPositions
 			);
 		} else {
 			path = createConnectionSplinePath(
-				new CustomRectPosition(e.clientX, e.clientY),
-				context.ports[`in_${held.node}_${held.port}`]
+				getPortPositions(
+					new CustomRectPosition(e.clientX, e.clientY),
+					context.ports[`in_${held.node}_${held.port}`]
+				) as IPortPositions
 			);
 		}
+	};
+
+	const updateColor = () => {
+		if (!context.currently_held) return;
+		const inter = tree.getInterface(
+			context.currently_held.node,
+			context.currently_held.port,
+			context.currently_held.isOutput
+		);
+
+		color = inter.type.color;
 	};
 
 	function handleMouseMove(e: MouseEvent) {
 		if (!context.currently_held) return;
 		updatePath(e);
+		updateColor();
 	}
 
 	function handleMouseUp(e: MouseEvent) {
@@ -38,7 +60,7 @@
 
 {#if path && context.currently_held}
 	<path
-		stroke="#fff"
+		stroke={color}
 		stroke-width="2"
 		d={path}
 		fill-opacity="0"

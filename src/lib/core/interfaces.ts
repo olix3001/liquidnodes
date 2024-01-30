@@ -38,11 +38,19 @@ abstract class NodeInterfaceBuilderMethods<Ty, Props> implements INodeInterface<
 	}
 }
 
+export class BaseTypes {
+	public static readonly ANY = new NodeInterfaceType<any>('ANY');
+	public static readonly NUMBER = new NodeInterfaceType<number>('number')
+		.withColor('#2f904b')
+		.addConversionUnsafe('string', (n) => n.toString());
+	public static readonly STRING = new NodeInterfaceType<string>('string').withColor('#eeab2c');
+}
 export class NodeInterface<Ty> extends NodeInterfaceBuilderMethods<Ty, {}> {
-	type = new NodeInterfaceType<Ty>('');
+	type = BaseTypes.ANY;
 
-	constructor(title: string) {
+	constructor(title: string, type: NodeInterfaceType<Ty>) {
 		super(title, {});
+		this.type = type;
 	}
 }
 
@@ -51,7 +59,7 @@ export interface NumberInterfaceProps {
 	max: number;
 }
 export class NumberInterface extends NodeInterfaceBuilderMethods<number, NumberInterfaceProps> {
-	type = new NodeInterfaceType<number>('number');
+	type = BaseTypes.NUMBER;
 
 	constructor(title: string) {
 		super(title, {

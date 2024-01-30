@@ -2,10 +2,13 @@
 	import {
 		EDITOR_CONTEXT,
 		createConnectionSplinePath,
-		type IEditorContext
+		type IEditorContext,
+		getPortPositions,
+		type IPortPositions
 	} from '$lib/core/editor.ts';
 	import type NodeTree from '$lib/core/nodeTree.ts';
-	import { getContext, onDestroy, onMount } from 'svelte';
+	import { beforeUpdate, getContext, onDestroy, onMount } from 'svelte';
+	import { v4 as uuidv4 } from 'uuid';
 
 	export let tree: NodeTree;
 	export let connectionID: string;
@@ -21,7 +24,40 @@
 	let target_node: HTMLDivElement;
 
 	let path: string | null;
-	const updatePath = () => (path = createConnectionSplinePath(source, target));
+	let color: string = '-';
+	let gradient: {
+		name: string;
+		start: string;
+		stop: string;
+		positions: IPortPositions;
+	} | null = null;
+	const updatePath = () => {
+		const positions = getPortPositions(source, target);
+		if (positions == null) return;
+		path = createConnectionSplinePath(positions);
+		updateConnectionColor(positions);
+	};
+
+	function updateConnectionColor(positions: IPortPositions) {
+		const source_inter = tree.getInterface(connection.source, connection.source_port, true);
+		const target_inter = tree.getInterface(connection.target, connection.target_port, false);
+
+		if (source_inter.type.color == target_inter.type.color) {
+			color = source_inter.type.color;
+			return;
+		}
+
+		// Create gradient
+		// TODO: use one gradient where viable
+		let gradientUID = uuidv4();
+		color = `url(#type_grad_${gradientUID})`;
+		gradient = {
+			name: `type_grad_${gradientUID}`,
+			start: source_inter.type.color,
+			stop: target_inter.type.color,
+			positions
+		};
+	}
 
 	function attachListeners() {
 		if (!context || !connection) return;
@@ -47,5 +83,20 @@
 </script>
 
 {#if path != null}
-	<path stroke="#fff" stroke-width="2" fill-opacity="0" d={path} />
+	{#if gradient != null}
+		<defs>
+			<linearGradient
+				id={gradient.name}
+				x1={gradient.positions.sx}
+				y1={gradient.positions.sy}
+				x2={gradient.positions.tx}
+				y2={gradient.positions.ty}
+				gradientUnits="userSpaceOnUse"
+			>
+				<stop offset="0" stop-color={gradient.start} />
+				<stop offset="1" stop-color={gradient.stop} />
+			</linearGradient>
+		</defs>
+	{/if}
+	<path stroke={color} stroke-width="2" fill-opacity="0" d={path} />
 {/if}

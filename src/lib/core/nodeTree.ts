@@ -1,6 +1,6 @@
 import { Result, type IPosition } from './common.ts';
 import Node from './node.js';
-import type { IConnection, INode, INodeIO, NodeUID } from './node.js';
+import type { IConnection, INode, INodeIO, INodeInterface, NodeUID } from './node.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class NodeTree {
@@ -14,6 +14,15 @@ export default class NodeTree {
 
 	getNodeType<I extends INodeIO = any, O extends INodeIO = any>(type: string): INode<I, O> {
 		return this.registered_node_types[type];
+	}
+
+	getInterface(node: NodeUID, inter: string, isOutput: boolean): INodeInterface<any, any> {
+		const n = this.nodes[node];
+		if (isOutput) {
+			return n.output_interfaces[inter];
+		} else {
+			return n.input_interfaces[inter];
+		}
 	}
 
 	insertNodeAt(type: string, position: IPosition): Result<NodeUID, string> {
@@ -39,6 +48,12 @@ export default class NodeTree {
 		// If this is input port ensure it is not yet connected,
 		// and replace connection if it is
 		if (this.hasConnection(nodeB, portB)) this.removeConnection(nodeB, portB);
+
+		// Quick type check :D
+		const A_inter = this.getInterface(nodeA, portA, true);
+		const B_inter = this.getInterface(nodeB, portB, false);
+		if (!A_inter.type.canConnectWith(B_inter.type)) return;
+		console.log('yes');
 
 		let uid = uuidv4();
 		this.connections[uid] = {

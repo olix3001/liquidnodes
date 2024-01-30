@@ -24,7 +24,7 @@
 			<svelte:component this={inter.component} {tree} {inter} />
 		{/if}
 	</div>
-	<Port {tree} {isOutput} {parentNodeID} portID={interID} />
+	<Port {tree} {isOutput} {inter} {parentNodeID} portID={interID} />
 </div>
 
 <style>

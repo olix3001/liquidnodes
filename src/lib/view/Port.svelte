@@ -1,13 +1,19 @@
 <script lang="ts">
 	import { EDITOR_CONTEXT, EditorTickEvent, type IEditorContext } from '$lib/core/editor.ts';
-	import type { IConnection } from '$lib/core/node.ts';
+	import type { IConnection, INodeInterface } from '$lib/core/node.ts';
 	import type NodeTree from '$lib/core/nodeTree.ts';
-	import { getContext } from 'svelte';
+	import { getContext, onMount } from 'svelte';
+
+	type Ty = $$Generic;
+	type Props = $$Generic;
 
 	export let tree: NodeTree;
 	export let parentNodeID: string;
 	export let portID: string;
+	export let inter: INodeInterface<Ty, Props>;
 	export let isOutput: boolean = true;
+
+	let color = inter.type.color;
 
 	$: id = `${isOutput ? 'out' : 'in'}_${parentNodeID}_${portID}`;
 	let context = getContext<IEditorContext>(EDITOR_CONTEXT);
@@ -51,7 +57,8 @@
 	class="liquidnodes_port"
 	class:liquidnodes_port_right={isOutput}
 	class:liquidnodes_port_left={!isOutput}
-	id={`liquidnodes_port_${id}`}
+	id="liquidnodes_port_{id}"
+	style="background-color: {color}"
 	bind:this={context.ports[id]}
 	on:mousedown|stopPropagation|preventDefault={beginNewConnection}
 	on:mouseup|preventDefault={tryCreateConnection}
@@ -61,7 +68,6 @@
 	.liquidnodes_port {
 		width: 10px;
 		height: 10px;
-		background-color: white;
 		border-radius: 50%;
 		position: absolute;
 		top: 5px;

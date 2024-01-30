@@ -27,9 +27,33 @@ export class NodeInterfaceType<Ty> {
 	declare readonly _type: Ty;
 	id: string;
 	color: string = '#fff';
+	private conversions: { [key: string]: (value: Ty) => any } = {};
 
 	constructor(id: string) {
 		this.id = id;
+	}
+
+	withColor(color: string) {
+		this.color = color;
+		return this;
+	}
+
+	addConversionUnsafe(type: string, f: (value: Ty) => any) {
+		this.conversions[type] = f;
+		return this;
+	}
+	addConversion<OT>(type: NodeInterfaceType<OT>, f: (value: Ty) => OT) {
+		this.addConversionUnsafe(type.id, f);
+		return this;
+	}
+
+	canConnectWith<OT>(target: NodeInterfaceType<OT>): boolean {
+		return this.canConnectWithID(target.id);
+	}
+	canConnectWithID(target: string): boolean {
+		if (this.id == target) return true;
+		if (this.conversions[target]) return true;
+		return false;
 	}
 }
 
