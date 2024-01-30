@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { EDITOR_CONTEXT, type IEditorContext, NodeMoveEvent } from '$lib/core/editor.ts';
 	import type NodeTree from '$lib/core/nodeTree.ts';
+	import { getContext } from 'svelte';
 	import InterfaceView from './InterfaceView.svelte';
 
 	export let tree: NodeTree;
@@ -9,8 +11,12 @@
 	$: node = tree.nodes[nodeID];
 	$: mtype = tree.getNodeType(node.type_id);
 	$: position = `left: ${node.position.x}px; top: ${node.position.y}px;`;
+	$: id = `liquidnodes_node_${nodeID}`;
 
 	let isDragging: boolean = false;
+	let context = getContext<IEditorContext>(EDITOR_CONTEXT);
+
+	$: melement = context.nodes[nodeID];
 
 	function startDrag(event: MouseEvent) {
 		if (event.button == 0) {
@@ -28,11 +34,12 @@
 		if (isDragging) {
 			node.position.x += event.movementX * (1 / zoom);
 			node.position.y += event.movementY * (1 / zoom);
+			melement.dispatchEvent(new NodeMoveEvent());
 		}
 	}
 </script>
 
-<div class="liquidnodes_node" style={position}>
+<div class="liquidnodes_node" style={position} {id} bind:this={context.nodes[nodeID]}>
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="liquidnodes_node_header" on:mousedown|stopPropagation|preventDefault={startDrag}>
 		<p class="liquidnodes_node_title">{mtype.title}</p>
@@ -41,13 +48,19 @@
 
 	<div class="liquidnodes_node_io">
 		<div class="liquidnodes_node_outputs">
-			{#each Object.values(node.output_interfaces) as inter}
-				<InterfaceView {tree} {inter} />
+			{#each Object.entries(node.output_interfaces) as inter}
+				<InterfaceView {tree} parentNodeID={nodeID} interID={inter[0]} inter={inter[1]} />
 			{/each}
 		</div>
 		<div class="liquidnodes_node_inputs">
-			{#each Object.values(node.input_interfaces) as inter}
-				<InterfaceView {tree} {inter} isOutput={false} />
+			{#each Object.entries(node.input_interfaces) as inter}
+				<InterfaceView
+					{tree}
+					parentNodeID={nodeID}
+					interID={inter[0]}
+					inter={inter[1]}
+					isOutput={false}
+				/>
 			{/each}
 		</div>
 	</div>

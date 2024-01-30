@@ -6,7 +6,9 @@
 	type Ty = $$Generic;
 
 	export let tree: NodeTree;
+	export let interID: string;
 	export let inter: INodeInterface<Ty, any>;
+	export let parentNodeID: string;
 	export let isOutput: boolean = true;
 </script>
 
@@ -19,7 +21,7 @@
 			<svelte:component this={inter.component} {tree} {inter} />
 		{/if}
 	</div>
-	<Port {isOutput} />
+	<Port {isOutput} {parentNodeID} portID={interID} />
 </div>
 
 <style>
@@ -29,17 +31,15 @@
 		margin-top: 0.75em;
 	}
 
-	.liquidnodes_interface_output .liquidnodes_interface_content {
-		display: flex;
-		justify-content: flex-end;
-	}
-	:not(.liquidnodes_interface_output) .liquidnodes_interface_content {
-		display: flex;
-		justify-content: flex-start;
+	.liquidnodes_interface_output .liquidnodes_interface_title {
+		text-align: right;
 	}
 
 	.liquidnodes_interface_content {
 		padding: 0 10px;
+		display: flex;
+		flex-direction: column;
+		row-gap: 0.5em;
 	}
 
 	.liquidnodes_interface_title {
@@ -47,5 +47,6 @@
 		color: var(--liquidnodes-node-text);
 		margin: 0;
 		padding-top: 3px;
+		width: 100%;
 	}
 </style>

@@ -58,6 +58,6 @@ export class NumberInterface extends NodeInterfaceBuilderMethods<number, NumberI
 			min: 0,
 			max: 100
 		});
-		this.hideDefaultTitle().withComponent(NumberInputInterface).withDefaultValue(0);
+		this.withComponent(NumberInputInterface).withDefaultValue(0);
 	}
 }

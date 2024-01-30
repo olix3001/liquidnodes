@@ -69,7 +69,9 @@ export default class Node {
 
 export interface IConnection {
 	source: NodeUID;
+	source_port: string;
 	target: NodeUID;
+	target_port: string;
 }
 
 export type NodeUID = string;

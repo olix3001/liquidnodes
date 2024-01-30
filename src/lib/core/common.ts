@@ -21,7 +21,7 @@ export class Result<T, E> {
 
 	public unwrap(): T {
 		if (this.isOk) return this.data as T;
-		else throw 'Unwrapped error value from result';
+		else throw 'Unwrapped error value from result: ' + this.data;
 	}
 
 	public map(f: (data: T) => void) {

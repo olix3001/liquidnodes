@@ -39,7 +39,10 @@
 	}
 
 	tree.registerNodeType(new MyNodeType());
-	tree.insertNodeAt('mytestnode', { x: 0, y: 0 });
+	let a = tree.insertNodeAt('mytestnode', { x: 0, y: 0 });
+	let b = tree.insertNodeAt('mytestnode', { x: 0, y: 0 });
+
+	tree.connect(a.unwrap(), 'result', b.unwrap(), 'a');
 </script>
 
 <div class="screen">

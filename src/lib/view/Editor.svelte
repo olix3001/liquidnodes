@@ -1,7 +1,10 @@
 <script lang="ts">
-	import type { IPosition } from '$lib/core/common.js';
+	import { type IPosition } from '$lib/core/common.js';
 	import NodeTree from '$lib/core/nodeTree.js';
 	import NodeView from './NodeView.svelte';
+	import ConnectionPath from './ConnectionPath.svelte';
+	import { setContext } from 'svelte';
+	import { EDITOR_CONTEXT, type IEditorContext } from '$lib/core/editor.ts';
 
 	export let tree: NodeTree;
 
@@ -13,6 +16,12 @@
 	let isDragging: boolean = false;
 
 	$: transform = `transform: translate(${editorOffset.x}px, ${editorOffset.y}px) scale(${editorZoom});`;
+
+	// Initialize context to pass data about ports and nodes
+	setContext<IEditorContext>(EDITOR_CONTEXT, {
+		nodes: {},
+		ports: {}
+	});
 
 	function handleMouseDown(event: MouseEvent) {
 		if (event.button == 1) {
@@ -64,7 +73,6 @@
 	on:mousemove|preventDefault={moveEditor}
 	on:wheel={zoomEditor}
 >
-	position: {JSON.stringify(editorOffset)}
 	<svg class="liquidnodes_editor_background">
 		<defs>
 			<pattern
@@ -87,6 +95,11 @@
 	</svg>
 
 	<div class="liquidnodes_editor_main" style={transform}>
+		<svg class="liquidnodes_connections">
+			{#each Object.keys(tree.connections) as connectionUID (connectionUID)}
+				<ConnectionPath {tree} connectionID={connectionUID} />
+			{/each}
+		</svg>
 		{#each Object.keys(tree.nodes) as node (node)}
 			<!-- <p style="color: white">{node}</p> -->
 			<NodeView {tree} nodeID={node} zoom={editorZoom} />
@@ -120,5 +133,15 @@
 		top: 0;
 		left: 0;
 		transform-origin: top left;
+	}
+
+	.liquidnodes_connections {
+		position: absolute;
+		top: 0;
+		left: 0;
+		overflow: visible;
+		pointer-events: none;
+		user-select: none;
+		z-index: 101;
 	}
 </style>
