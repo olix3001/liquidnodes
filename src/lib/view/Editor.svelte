@@ -3,8 +3,9 @@
 	import NodeTree from '$lib/core/nodeTree.js';
 	import NodeView from './NodeView.svelte';
 	import ConnectionPath from './ConnectionPath.svelte';
-	import { setContext } from 'svelte';
-	import { EDITOR_CONTEXT, type IEditorContext } from '$lib/core/editor.ts';
+	import CurrentlyHeldConnectionPath from './CurrentlyHeldConnectionPath.svelte';
+	import { onMount, setContext, tick } from 'svelte';
+	import { EDITOR_CONTEXT, EditorTickEvent, type IEditorContext } from '$lib/core/editor.ts';
 
 	export let tree: NodeTree;
 
@@ -18,9 +19,10 @@
 	$: transform = `transform: translate(${editorOffset.x}px, ${editorOffset.y}px) scale(${editorZoom});`;
 
 	// Initialize context to pass data about ports and nodes
-	setContext<IEditorContext>(EDITOR_CONTEXT, {
+	let context = setContext<IEditorContext>(EDITOR_CONTEXT, {
 		nodes: {},
-		ports: {}
+		ports: {},
+		currently_held: null
 	});
 
 	function handleMouseDown(event: MouseEvent) {
@@ -62,6 +64,19 @@
 			editorOffset.y = offsetY;
 		}
 	}
+
+	function updateEditor(e: EditorTickEvent) {
+		// This may allow nested editors (not tested)
+		e.stopPropagation();
+		tree = tree;
+	}
+
+	onMount(() => {
+		EDITOR.addEventListener('editor_tick', updateEditor);
+		return () => {
+			EDITOR.removeEventListener('editor_tick', updateEditor);
+		};
+	});
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -99,6 +114,8 @@
 			{#each Object.keys(tree.connections) as connectionUID (connectionUID)}
 				<ConnectionPath {tree} connectionID={connectionUID} />
 			{/each}
+
+			<CurrentlyHeldConnectionPath />
 		</svg>
 		{#each Object.keys(tree.nodes) as node (node)}
 			<!-- <p style="color: white">{node}</p> -->

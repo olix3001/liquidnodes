@@ -1,12 +1,15 @@
+import type { NodeUID } from './node.ts';
+
 export const EDITOR_CONTEXT = Symbol();
 export interface IEditorContext {
 	nodes: { [key: string]: HTMLDivElement };
 	ports: { [key: string]: HTMLDivElement };
+	currently_held: ICurrentlyHeldConnection | null;
 }
 
 export function createConnectionSplinePath(
-	source: HTMLElement | undefined,
-	target: HTMLElement | undefined
+	source: HTMLElement | CustomRectPosition | undefined,
+	target: HTMLElement | CustomRectPosition | undefined
 ): string | null {
 	if (!source || !target) {
 		return null;
@@ -32,5 +35,38 @@ export function createConnectionSplinePath(
 export class NodeMoveEvent extends Event {
 	constructor() {
 		super('node_move');
+	}
+}
+export class EditorTickEvent extends Event {
+	constructor() {
+		super('editor_tick', {
+			bubbles: true,
+			cancelable: true
+		});
+	}
+}
+
+export interface ICurrentlyHeldConnection {
+	node: NodeUID;
+	port: string;
+	isOutput: boolean;
+}
+
+export class CustomRectPosition {
+	left: number;
+	top: number;
+
+	constructor(left: number = 0, top: number = 0) {
+		this.left = left;
+		this.top = top;
+	}
+
+	getBoundingClientRect() {
+		return {
+			left: this.left,
+			top: this.top,
+			width: 1,
+			height: 1
+		};
 	}
 }

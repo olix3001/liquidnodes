@@ -10,18 +10,21 @@
 	export let inter: INodeInterface<Ty, any>;
 	export let parentNodeID: string;
 	export let isOutput: boolean = true;
+
+	$: isConnected = tree.hasConnection(parentNodeID, interID);
+	$: showInterface = !(isConnected && inter.hideWhenConnected);
 </script>
 
 <div class="liquidnodes_interface" class:liquidnodes_interface_output={isOutput}>
 	<div class="liquidnodes_interface_content">
-		{#if inter.displayDefaultTitle}
+		{#if inter.displayDefaultTitle || !showInterface}
 			<p class="liquidnodes_interface_title">{inter.title}</p>
 		{/if}
-		{#if inter.component}
+		{#if inter.component && showInterface}
 			<svelte:component this={inter.component} {tree} {inter} />
 		{/if}
 	</div>
-	<Port {isOutput} {parentNodeID} portID={interID} />
+	<Port {tree} {isOutput} {parentNodeID} portID={interID} />
 </div>
 
 <style>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { EDITOR_CONTEXT, type IEditorContext, NodeMoveEvent } from '$lib/core/editor.ts';
 	import type NodeTree from '$lib/core/nodeTree.ts';
-	import { getContext } from 'svelte';
+	import { afterUpdate, getContext } from 'svelte';
 	import InterfaceView from './InterfaceView.svelte';
 
 	export let tree: NodeTree;
@@ -34,9 +34,11 @@
 		if (isDragging) {
 			node.position.x += event.movementX * (1 / zoom);
 			node.position.y += event.movementY * (1 / zoom);
-			melement.dispatchEvent(new NodeMoveEvent());
 		}
 	}
+	afterUpdate(() => {
+		if (melement) melement.dispatchEvent(new NodeMoveEvent());
+	});
 </script>
 
 <div class="liquidnodes_node" style={position} {id} bind:this={context.nodes[nodeID]}>
