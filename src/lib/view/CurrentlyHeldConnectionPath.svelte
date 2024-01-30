@@ -22,6 +22,7 @@
 		if (context.currently_held.isOutput) {
 			path = createConnectionSplinePath(
 				getPortPositions(
+					context.editor as HTMLDivElement,
 					context.ports[`out_${held.node}_${held.port}`],
 					new CustomRectPosition(e.clientX, e.clientY)
 				) as IPortPositions
@@ -29,6 +30,7 @@
 		} else {
 			path = createConnectionSplinePath(
 				getPortPositions(
+					context.editor as HTMLDivElement,
 					new CustomRectPosition(e.clientX, e.clientY),
 					context.ports[`in_${held.node}_${held.port}`]
 				) as IPortPositions

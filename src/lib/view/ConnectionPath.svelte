@@ -32,7 +32,7 @@
 		positions: IPortPositions;
 	} | null = null;
 	const updatePath = () => {
-		const positions = getPortPositions(source, target);
+		const positions = getPortPositions(context.editor as HTMLDivElement, source, target);
 		if (positions == null) return;
 		path = createConnectionSplinePath(positions);
 		updateConnectionColor(positions);

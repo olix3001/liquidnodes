@@ -10,6 +10,7 @@
 	export let tree: NodeTree;
 
 	let EDITOR: HTMLDivElement;
+	let EDITOR_MAIN: HTMLDivElement;
 
 	let editorOffset: IPosition = { x: 0, y: 0 };
 	let editorZoom: number = 1;
@@ -17,12 +18,14 @@
 	let isDragging: boolean = false;
 
 	$: transform = `transform: translate(${editorOffset.x}px, ${editorOffset.y}px) scale(${editorZoom});`;
+	$: inverseTransform = `transform: scale(${1 / editorZoom});`;
 
 	// Initialize context to pass data about ports and nodes
 	let context = setContext<IEditorContext>(EDITOR_CONTEXT, {
 		nodes: {},
 		ports: {},
-		currently_held: null
+		currently_held: null,
+		editor: null
 	});
 
 	function handleMouseDown(event: MouseEvent) {
@@ -73,6 +76,7 @@
 
 	onMount(() => {
 		EDITOR.addEventListener('editor_tick', updateEditor);
+		context.editor = EDITOR_MAIN;
 		return () => {
 			EDITOR.removeEventListener('editor_tick', updateEditor);
 		};
@@ -109,8 +113,8 @@
 		<rect width="100%" height="100%" fill="url(#grid)"></rect>
 	</svg>
 
-	<div class="liquidnodes_editor_main" style={transform}>
-		<svg class="liquidnodes_connections">
+	<div class="liquidnodes_editor_main" style={transform} bind:this={EDITOR_MAIN}>
+		<svg class="liquidnodes_connections" style={inverseTransform}>
 			{#each Object.keys(tree.connections) as connectionUID (connectionUID)}
 				<ConnectionPath {tree} connectionID={connectionUID} />
 			{/each}
@@ -160,5 +164,6 @@
 		pointer-events: none;
 		user-select: none;
 		z-index: 101;
+		transform-origin: top left;
 	}
 </style>

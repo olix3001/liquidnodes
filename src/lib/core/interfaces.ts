@@ -27,6 +27,12 @@ abstract class NodeInterfaceBuilderMethods<Ty, Props> implements INodeInterface<
 		return this;
 	}
 
+	alwaysHide() {
+		this.displayDefaultTitle = false;
+		this.hideWhenConnected = true;
+		return this;
+	}
+
 	withComponent(component: NodeInterfaceComponent<Ty, Props>) {
 		this.component = component;
 		return this;
@@ -38,12 +44,17 @@ abstract class NodeInterfaceBuilderMethods<Ty, Props> implements INodeInterface<
 	}
 }
 
+export class Flow {
+	fire() {}
+}
+
 export class BaseTypes {
 	public static readonly ANY = new NodeInterfaceType<any>('ANY');
 	public static readonly NUMBER = new NodeInterfaceType<number>('number')
 		.withColor('#2f904b')
 		.addConversionUnsafe('string', (n) => n.toString());
 	public static readonly STRING = new NodeInterfaceType<string>('string').withColor('#eeab2c');
+	public static readonly FLOW = new NodeInterfaceType<Flow>('FLOW').withColor('#fff');
 }
 export class NodeInterface<Ty> extends NodeInterfaceBuilderMethods<Ty, {}> {
 	type = BaseTypes.ANY;
@@ -67,5 +78,13 @@ export class NumberInterface extends NodeInterfaceBuilderMethods<number, NumberI
 			max: 100
 		});
 		this.withComponent(NumberInputInterface).withDefaultValue(0);
+	}
+}
+
+export class FlowInterface extends NodeInterfaceBuilderMethods<Flow, {}> {
+	type = BaseTypes.FLOW;
+
+	constructor(title: string) {
+		super(title, {});
 	}
 }

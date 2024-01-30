@@ -5,6 +5,7 @@ export interface IEditorContext {
 	nodes: { [key: string]: HTMLDivElement };
 	ports: { [key: string]: HTMLDivElement };
 	currently_held: ICurrentlyHeldConnection | null;
+	editor: HTMLDivElement | null;
 }
 
 export interface IPortPositions {
@@ -15,22 +16,24 @@ export interface IPortPositions {
 }
 
 export function getPortPositions(
+	editor: HTMLDivElement,
 	source: HTMLElement | CustomRectPosition | undefined,
 	target: HTMLElement | CustomRectPosition | undefined
 ): IPortPositions | null {
-	if (!source || !target) {
+	if (!source || !target || !editor) {
 		return null;
 	}
+	const editor_rect = editor.getBoundingClientRect();
 	const source_rect = source.getBoundingClientRect();
 	const target_rect = target.getBoundingClientRect();
 
 	const source_center = {
-		x: source_rect.left + source_rect.width / 2,
-		y: source_rect.top + source_rect.height / 2
+		x: source_rect.left - editor_rect.left + source_rect.width / 2,
+		y: source_rect.top - editor_rect.top + source_rect.height / 2
 	};
 	const target_center = {
-		x: target_rect.left + target_rect.width / 2,
-		y: target_rect.top + target_rect.height / 2
+		x: target_rect.left - editor_rect.left + target_rect.width / 2,
+		y: target_rect.top - editor_rect.top + target_rect.height / 2
 	};
 	return {
 		sx: source_center.x,

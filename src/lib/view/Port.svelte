@@ -12,6 +12,7 @@
 	export let portID: string;
 	export let inter: INodeInterface<Ty, Props>;
 	export let isOutput: boolean = true;
+	export let isFlow: boolean = false;
 
 	let color = inter.type.color;
 
@@ -58,7 +59,7 @@
 	class:liquidnodes_port_right={isOutput}
 	class:liquidnodes_port_left={!isOutput}
 	id="liquidnodes_port_{id}"
-	style="background-color: {color}"
+	style="background-color: {color}; {isFlow ? 'top: 0.8em' : ''};"
 	bind:this={context.ports[id]}
 	on:mousedown|stopPropagation|preventDefault={beginNewConnection}
 	on:mouseup|preventDefault={tryCreateConnection}

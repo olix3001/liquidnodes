@@ -3,6 +3,7 @@
 	import type NodeTree from '$lib/core/nodeTree.ts';
 	import { afterUpdate, getContext } from 'svelte';
 	import InterfaceView from './InterfaceView.svelte';
+	import Port from './Port.svelte';
 
 	export let tree: NodeTree;
 	export let nodeID: string;
@@ -44,8 +45,30 @@
 <div class="liquidnodes_node" style={position} {id} bind:this={context.nodes[nodeID]}>
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="liquidnodes_node_header" on:mousedown|stopPropagation|preventDefault={startDrag}>
-		<p class="liquidnodes_node_title">{mtype.title}</p>
-		<p class="liquidnodes_node_desc">{mtype.description}</p>
+		{#if node.flow_in_interface}
+			<Port
+				{tree}
+				isOutput={false}
+				isFlow={true}
+				inter={node.flow_in_interface}
+				parentNodeID={nodeID}
+				portID={'__flow_in'}
+			/>
+		{/if}
+		<div class="liquidnodes_node_header_text">
+			<p class="liquidnodes_node_title">{mtype.title}</p>
+			<p class="liquidnodes_node_desc">{mtype.description}</p>
+		</div>
+		{#if node.flow_out_interface}
+			<Port
+				{tree}
+				isOutput={true}
+				isFlow={true}
+				inter={node.flow_out_interface}
+				parentNodeID={nodeID}
+				portID={'__flow_out'}
+			/>
+		{/if}
 	</div>
 
 	<div class="liquidnodes_node_io">
@@ -83,10 +106,10 @@
 
 	.liquidnodes_node_header {
 		background-color: var(--liquidnodes-node-box);
+		position: relative;
 		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
+		flex-direction: row;
+		justify-content: space-between;
 		padding: 0.35em;
 		color: var(--liquidnodes-node-text);
 		cursor: pointer;
@@ -94,7 +117,15 @@
 		border-radius: 7px;
 	}
 
-	.liquidnodes_node_header > p {
+	.liquidnodes_node_header_text {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		flex: 1;
+	}
+
+	.liquidnodes_node_header_text > p {
 		margin: 0;
 	}
 
