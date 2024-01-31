@@ -133,7 +133,7 @@ export function defineNode(
 
 		calculate = calculate ?? (() => ({}));
 	};
-	Object.defineProperty(mynodeclass.constructor, 'name', `NodeType_${data.id}`);
+	// Object.defineProperty(mynodeclass.constructor, 'name', `NodeType_${data.id}`);
 	return mynodeclass;
 }
 

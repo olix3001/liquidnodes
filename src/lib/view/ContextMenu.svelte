@@ -18,9 +18,10 @@
 	export let tree: NodeTree;
 	export let editor: HTMLDivElement;
 	export async function handleContextMenu(e: MouseEvent) {
+		const editorBB = editor.getBoundingClientRect();
 		position = {
-			x: e.clientX,
-			y: e.clientY
+			x: e.clientX - editorBB.x,
+			y: e.clientY - editorBB.y
 		};
 		if (!isContextMenuOpen) isContextMenuOpen = true;
 		await tick();

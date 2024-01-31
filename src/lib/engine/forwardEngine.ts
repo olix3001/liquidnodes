@@ -28,6 +28,10 @@ export default class ForwardEngine {
 		this.tree = tree;
 	}
 
+	setContext(context: any) {
+		this.ctx = context;
+	}
+
 	runFromType(type: string, runMultiple: boolean = true) {
 		for (let [nodeID, node] of Object.entries(this.tree.nodes)) {
 			if (node.type_id == type) {

@@ -5,12 +5,12 @@
 	import '$lib/style/defaultEditorStyle.css';
 	import {
 		BaseTypes,
-		type Flow,
 		FlowInterface,
 		NodeInterface,
 		NumberInterface
 	} from '$lib/core/interfaces.ts';
 	import ForwardEngine from '$lib/engine/forwardEngine.ts';
+	import { EditorTickEvent } from '$lib/core/editor.ts';
 
 	let tree = new NodeTree();
 
@@ -76,7 +76,8 @@
 		category: 'Flow',
 		id: 'start',
 		title: 'Start',
-		description: 'Entry point for your program.'
+		description: 'Entry point for your program.',
+		flow: FlowState.OUT
 	});
 
 	tree.registerNodeType(new AddNode());
