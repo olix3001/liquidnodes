@@ -4,13 +4,15 @@
 	import NodeView from './NodeView.svelte';
 	import ConnectionPath from './ConnectionPath.svelte';
 	import CurrentlyHeldConnectionPath from './CurrentlyHeldConnectionPath.svelte';
-	import { onMount, setContext, tick } from 'svelte';
+	import { onMount, setContext } from 'svelte';
 	import { EDITOR_CONTEXT, EditorTickEvent, type IEditorContext } from '$lib/core/editor.ts';
+	import ContextMenu from './ContextMenu.svelte';
 
 	export let tree: NodeTree;
 
 	let EDITOR: HTMLDivElement;
 	let EDITOR_MAIN: HTMLDivElement;
+	let handleContextMenu: (e: MouseEvent) => Promise<void>;
 
 	let editorOffset: IPosition = { x: 0, y: 0 };
 	let editorZoom: number = 1;
@@ -91,6 +93,7 @@
 	on:mouseup={handleMouseUp}
 	on:mousemove|preventDefault={moveEditor}
 	on:wheel={zoomEditor}
+	on:contextmenu|preventDefault={handleContextMenu}
 >
 	<svg class="liquidnodes_editor_background">
 		<defs>
@@ -113,6 +116,7 @@
 		<rect width="100%" height="100%" fill="url(#grid)"></rect>
 	</svg>
 
+	<ContextMenu {tree} editor={EDITOR} bind:handleContextMenu />
 	<div class="liquidnodes_editor_main" style={transform} bind:this={EDITOR_MAIN}>
 		<svg class="liquidnodes_connections" style={inverseTransform}>
 			{#each Object.keys(tree.connections) as connectionUID (connectionUID)}

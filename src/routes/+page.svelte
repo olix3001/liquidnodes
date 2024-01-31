@@ -25,7 +25,7 @@
 				{}
 			>
 	{
-		category = 'Test';
+		category = 'Comparison';
 		id = 'greaterthan';
 		title = 'Greater Than';
 		description = 'Check if a > b';

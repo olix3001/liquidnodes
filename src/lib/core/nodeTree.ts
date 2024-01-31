@@ -1,6 +1,6 @@
 import { Result, type IPosition } from './common.ts';
 import { Flow, FlowInterface } from './interfaces.ts';
-import Node from './node.js';
+import Node, { FlowState } from './node.js';
 import type { IConnection, INode, INodeIO, INodeInterface, NodeUID } from './node.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -8,10 +8,18 @@ export default class NodeTree {
 	private registered_node_types: { [key: string]: INode<any, any> } = {};
 	public nodes: { [key: NodeUID]: Node } = {};
 	public connections: { [key: string]: IConnection } = {};
-	public supportsFlow: boolean = true;
+	public readonly categories: { [key: string]: string[] } = {};
+	public readonly supportsFlow: boolean = true;
 
 	registerNodeType<I extends INodeIO, O extends INodeIO>(node: INode<I, O>) {
+		if (!this.supportsFlow && node.flow != FlowState.NONE) {
+			throw 'This node tree does not support flow';
+		}
 		this.registered_node_types[node.id] = node;
+		if (!(node.category in this.categories)) {
+			this.categories[node.category] = [];
+		}
+		this.categories[node.category].push(node.id);
 	}
 
 	getNodeType<I extends INodeIO = any, O extends INodeIO = any>(type: string): INode<I, O> {
