@@ -7,6 +7,8 @@
 	import { onMount, setContext } from 'svelte';
 	import { EDITOR_CONTEXT, EditorTickEvent, type IEditorContext } from '$lib/core/editor.ts';
 	import ContextMenu from './ContextMenu.svelte';
+	import { writable, type Writable } from 'svelte/store';
+	import { ZoomInIcon } from 'lucide-svelte';
 
 	export let tree: NodeTree;
 
@@ -27,8 +29,10 @@
 		nodes: {},
 		ports: {},
 		currently_held: null,
-		editor: null
+		editor: null,
+		selectedNodes: writable([])
 	});
+	let selectedNodes = context.selectedNodes;
 
 	function handleMouseDown(event: MouseEvent) {
 		if (event.button == 1) {
@@ -38,6 +42,15 @@
 	function handleMouseUp(event: MouseEvent) {
 		if (event.button == 1) {
 			isDragging = false;
+		}
+	}
+
+	function handleKeypress(event: KeyboardEvent) {
+		if (event.key == 'Delete') {
+			for (let selectedNode of $selectedNodes) {
+				tree.removeNode(selectedNode);
+			}
+			EDITOR.dispatchEvent(new EditorTickEvent());
 		}
 	}
 
@@ -130,7 +143,13 @@
 			<NodeView {tree} nodeID={node} zoom={editorZoom} />
 		{/each}
 	</div>
+	<div class="liquidnodes_zoom_info">
+		<ZoomInIcon />
+		<p>{(editorZoom * 100).toFixed(0)}%</p>
+	</div>
 </div>
+
+<svelte:window on:keydown={handleKeypress} />
 
 <style>
 	.liquidnodes_editor {
@@ -169,5 +188,17 @@
 		user-select: none;
 		z-index: 101;
 		transform-origin: top left;
+	}
+
+	.liquidnodes_zoom_info {
+		color: white;
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 0.5em;
+		padding: 1em 2em;
 	}
 </style>

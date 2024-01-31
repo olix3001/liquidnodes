@@ -106,4 +106,21 @@ export default class NodeTree {
 		}
 		return null;
 	}
+
+	removeNode(node: NodeUID) {
+		const n = this.nodes[node];
+		if (!n) return;
+		// Ensure it has no connections
+		for (let inter of [
+			...Object.keys(n.input_interfaces),
+			...Object.keys(n.output_interfaces),
+			'__flow_in',
+			'__flow_out'
+		]) {
+			this.removeConnection(node, inter);
+		}
+
+		// Remove node
+		delete this.nodes[node];
+	}
 }

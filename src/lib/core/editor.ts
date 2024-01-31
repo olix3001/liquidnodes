@@ -1,3 +1,4 @@
+import type { Writable } from 'svelte/store';
 import type { NodeUID } from './node.ts';
 
 export const EDITOR_CONTEXT = Symbol();
@@ -6,6 +7,7 @@ export interface IEditorContext {
 	ports: { [key: string]: HTMLDivElement };
 	currently_held: ICurrentlyHeldConnection | null;
 	editor: HTMLDivElement | null;
+	selectedNodes: Writable<string[]>;
 }
 
 export interface IPortPositions {
@@ -44,9 +46,13 @@ export function getPortPositions(
 }
 
 export function createConnectionSplinePath(positions: IPortPositions): string | null {
+	let offset = Math.abs(positions.sx - positions.tx) / 2;
+	let offsetY = Math.abs(positions.sy - positions.ty) / 3;
+	offset = Math.max(offset, offsetY, 20);
+
 	return `M ${positions.sx} ${positions.sy} \
-    C ${positions.sx + 100} ${positions.sy} \
-    ${positions.tx - 100} ${positions.ty} \
+    C ${positions.sx + offset} ${positions.sy} \
+    ${positions.tx - offset} ${positions.ty} \
     ${positions.tx} ${positions.ty}`;
 }
 

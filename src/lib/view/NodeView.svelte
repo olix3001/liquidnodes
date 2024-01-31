@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { EDITOR_CONTEXT, type IEditorContext, NodeMoveEvent } from '$lib/core/editor.ts';
 	import type NodeTree from '$lib/core/nodeTree.ts';
-	import { afterUpdate, getContext } from 'svelte';
+	import { beforeUpdate, getContext, onDestroy } from 'svelte';
 	import InterfaceView from './InterfaceView.svelte';
 	import Port from './Port.svelte';
 
@@ -13,15 +13,21 @@
 	$: mtype = tree.getNodeType(node.type_id);
 	$: position = `left: ${node.position.x}px; top: ${node.position.y}px;`;
 	$: id = `liquidnodes_node_${nodeID}`;
+	let isSelected: boolean = false;
 
 	let isDragging: boolean = false;
 	let context = getContext<IEditorContext>(EDITOR_CONTEXT);
+
+	let unsubscribe_selected = context.selectedNodes.subscribe((selectedNodes) => {
+		isSelected = selectedNodes.includes(nodeID);
+	});
 
 	$: melement = context.nodes[nodeID];
 
 	function startDrag(event: MouseEvent) {
 		if (event.button == 0) {
 			isDragging = true;
+			context.selectedNodes.set([nodeID]);
 		}
 	}
 
@@ -37,12 +43,21 @@
 			node.position.y += event.movementY * (1 / zoom);
 		}
 	}
-	afterUpdate(() => {
+	beforeUpdate(() => {
 		if (melement) melement.dispatchEvent(new NodeMoveEvent());
+	});
+	onDestroy(() => {
+		unsubscribe_selected();
 	});
 </script>
 
-<div class="liquidnodes_node" style={position} {id} bind:this={context.nodes[nodeID]}>
+<div
+	class="liquidnodes_node"
+	style={position}
+	{id}
+	bind:this={context.nodes[nodeID]}
+	class:liquidnodes_selected={isSelected}
+>
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="liquidnodes_node_header" on:mousedown|stopPropagation|preventDefault={startDrag}>
 		{#if node.flow_in_interface}
@@ -102,6 +117,10 @@
 		box-shadow: 3px 2px 5px var(--liquidnodes-node-shadow);
 		padding: 3px;
 		min-width: 150px;
+	}
+
+	.liquidnodes_selected {
+		border: 2px dashed var(--liquidnodes-node-highlight);
 	}
 
 	.liquidnodes_node_header {
