@@ -1,5 +1,5 @@
 import { Result, type IPosition } from './common.ts';
-import { Flow, FlowInterface } from './interfaces.ts';
+import { type Flow, FlowInterface } from './interfaces.ts';
 import Node, { FlowState } from './node.js';
 import type { IConnection, INode, INodeIO, INodeInterface, NodeUID } from './node.js';
 import { v4 as uuidv4 } from 'uuid';

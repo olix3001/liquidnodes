@@ -1,5 +1,20 @@
+import { FlowInterface, type Flow } from '$lib/core/interfaces.ts';
 import type { IConnection, NodeUID } from '$lib/core/node.ts';
 import type NodeTree from '$lib/core/nodeTree.ts';
+
+class ForwardEngineFlow implements Flow {
+	private readonly engine: ForwardEngine;
+	private readonly target_node: NodeUID;
+
+	constructor(engine: ForwardEngine, target_node: NodeUID) {
+		this.engine = engine;
+		this.target_node = target_node;
+	}
+
+	fire(output?: any): void {
+		this.engine.runFromID(this.target_node, false);
+	}
+}
 
 export default class ForwardEngine {
 	private tree: NodeTree;
@@ -46,7 +61,6 @@ export default class ForwardEngine {
 		const NODE = this.tree.getNodeType(n.type_id);
 
 		// Assign inputs
-		// TODO: Custom flow inputs (fake outputs)
 		const inputs: { [key: string]: any } = {};
 		for (let conn of Object.values(deps)) {
 			const value = this.cachedOutputs[conn.source][conn.source_port];
@@ -54,6 +68,15 @@ export default class ForwardEngine {
 			const sourceInter = sourceNode.output_interfaces[conn.source_port];
 			const targetInter = n.input_interfaces[conn.target_port];
 			inputs[conn.target_port] = sourceInter.type.convertTo(targetInter.type, value);
+		}
+		// Custom flow outputs
+		for (let [interID, inter] of Object.entries(n.output_interfaces)) {
+			if (inter instanceof FlowInterface) {
+				const target = this.findConnectionFrom(node, interID);
+				if (target) {
+					inputs[interID] = new ForwardEngineFlow(this, target[1].target);
+				}
+			}
 		}
 		// Use default values for all non-connected interfaces
 		for (let [interID, inter] of Object.entries(n.input_interfaces)) {

@@ -44,10 +44,10 @@ abstract class NodeInterfaceBuilderMethods<Ty, Props> implements INodeInterface<
 	}
 }
 
-export class Flow {
+export interface Flow {
 	// Fires subgraph of this flow using "output" field
 	// as data for this node during execution
-	fire(output?: any) {}
+	fire(output?: any): void;
 }
 
 export class BaseTypes {

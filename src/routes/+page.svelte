@@ -5,7 +5,7 @@
 	import '$lib/style/defaultEditorStyle.css';
 	import {
 		BaseTypes,
-		Flow,
+		type Flow,
 		FlowInterface,
 		NodeInterface,
 		NumberInterface
