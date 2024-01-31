@@ -1,6 +1,7 @@
 import type { ComponentType, SvelteComponent } from 'svelte';
 import { type INodeInterface, NodeInterfaceType, type NodeInterfaceComponent } from './node.ts';
 import NumberInputInterface from '$lib/view/interface/NumberInputInterface.svelte';
+import TextInputInterface from '$lib/view/interface/TextInputInterface.svelte';
 
 abstract class NodeInterfaceBuilderMethods<Ty, Props> implements INodeInterface<Ty, Props> {
 	abstract type: NodeInterfaceType<Ty>;
@@ -54,10 +55,11 @@ export class BaseTypes {
 	public static readonly ANY = new NodeInterfaceType<any>('ANY').withColor('#8338f9');
 	public static readonly NUMBER = new NodeInterfaceType<number>('number')
 		.withColor('#2f904b')
-		.addConversionUnsafe('string', (n) => n.toString());
+		.addConversionUnsafe('string', (number) => number.toString());
 	public static readonly STRING = new NodeInterfaceType<string>('string').withColor('#eeab2c');
 	public static readonly FLOW = new NodeInterfaceType<Flow>('FLOW').withColor('#fff');
 }
+
 export class NodeInterface<Ty> extends NodeInterfaceBuilderMethods<Ty, {}> {
 	type = BaseTypes.ANY;
 
@@ -80,6 +82,15 @@ export class NumberInterface extends NodeInterfaceBuilderMethods<number, NumberI
 			max: 100
 		});
 		this.withComponent(NumberInputInterface).withDefaultValue(0);
+	}
+}
+
+export class TextInterface extends NodeInterfaceBuilderMethods<string, {}> {
+	type = BaseTypes.STRING;
+
+	constructor(title: string) {
+		super(title, {});
+		this.withComponent(TextInputInterface).withDefaultValue('');
 	}
 }
 

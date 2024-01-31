@@ -120,7 +120,7 @@
 	}
 
 	.liquidnodes_selected {
-		border: 2px dashed var(--liquidnodes-node-highlight);
+		outline: 2px dashed var(--liquidnodes-node-highlight);
 	}
 
 	.liquidnodes_node_header {

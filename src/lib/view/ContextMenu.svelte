@@ -17,6 +17,8 @@
 
 	export let tree: NodeTree;
 	export let editor: HTMLDivElement;
+	export let offset: IPosition;
+	export let zoom: number;
 	export async function handleContextMenu(e: MouseEvent) {
 		const editorBB = editor.getBoundingClientRect();
 		position = {
@@ -31,7 +33,10 @@
 		isContextMenuOpen = false;
 	}
 	function insertNode(nodeID: string) {
-		tree.insertNodeAt(nodeID, position);
+		tree.insertNodeAt(nodeID, {
+			x: (position.x - offset.x) / zoom,
+			y: (position.y - offset.y) / zoom
+		});
 		handleCloseContext();
 		// Refresh editor
 		INPUT.dispatchEvent(new EditorTickEvent());

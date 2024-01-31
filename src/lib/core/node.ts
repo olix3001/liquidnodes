@@ -3,6 +3,77 @@ import { type IPosition } from './common.js';
 import type NodeTree from './nodeTree.ts';
 import type { Flow } from './interfaces.ts';
 
+export interface INodeUpdateEvent {}
+export class NewConnectionNodeEvent implements INodeUpdateEvent {
+	public readonly isOutgoing: boolean;
+	public readonly connection: IConnection;
+	public readonly port: string;
+
+	constructor(connection: IConnection, isOutput: boolean, port: string) {
+		this.connection = connection;
+		this.isOutgoing = isOutput;
+		this.port = port;
+	}
+}
+export class RemoveConnectionNodeEvent implements INodeUpdateEvent {
+	public readonly isOutgoing: boolean;
+	public readonly port: string;
+	public readonly connection: IConnection;
+
+	constructor(connection: IConnection, isOutput: boolean, port: string) {
+		this.isOutgoing = isOutput;
+		this.connection = connection;
+		this.port = port;
+	}
+}
+export class ChangeInterfaceValueNodeEvent<T> implements INodeUpdateEvent {
+	public readonly oldValue?: T;
+	public readonly newValue: T;
+	public readonly isOutputPort: boolean;
+	public readonly port: string;
+	public readonly inter: INodeInterface<T, any>;
+
+	constructor(data: {
+		oldValue?: T;
+		newValue: T;
+		isOutput: boolean;
+		port: string;
+		inter: INodeInterface<T, any>;
+	}) {
+		this.oldValue = data.oldValue;
+		this.newValue = data.newValue;
+		this.isOutputPort = data.isOutput;
+		this.port = data.port;
+		this.inter = data.inter;
+	}
+}
+
+export class InterfaceNodeEvent<T> implements INodeUpdateEvent {
+	public readonly data: T;
+	public readonly isOutputPort: boolean;
+	public readonly port: string;
+	public readonly inter: INodeInterface<any, any>;
+	public readonly type: string;
+
+	constructor(data: {
+		data: T;
+		isOutput: boolean;
+		port: string;
+		inter: INodeInterface<any, any>;
+		type: string;
+	}) {
+		this.data = data.data;
+		this.isOutputPort = data.isOutput;
+		this.port = data.port;
+		this.inter = data.inter;
+		this.type = data.type;
+	}
+}
+
+export interface IInterfaceInfo {
+	isOutput: boolean;
+	name: string;
+}
 export interface INodeInterface<Ty, Props> {
 	type: NodeInterfaceType<Ty>;
 	title: string;
@@ -18,6 +89,8 @@ export type NodeInterfaceComponent<Ty, Props> = ComponentType<
 		{
 			tree: NodeTree;
 			inter: INodeInterface<Ty, Props>;
+			node: NodeUID;
+			info: IInterfaceInfo;
 		},
 		{},
 		{}
@@ -46,6 +119,10 @@ export class NodeInterfaceType<Ty> {
 	addConversion<OT>(type: NodeInterfaceType<OT>, f: (value: Ty) => OT) {
 		this.addConversionUnsafe(type.id, f);
 		return this;
+	}
+
+	removeConversion(type_id: string) {
+		delete this.conversions[type_id];
 	}
 
 	canConnectWith<OT>(target: NodeInterfaceType<OT>): boolean {
@@ -102,6 +179,7 @@ export interface INode<Input extends INodeIO, Output extends INodeIO, Ctx = {}> 
 		[K in keyof Output]: () => INodeInterface<Output[K], any>;
 	};
 
+	onUpdate?(event: INodeUpdateEvent, node: Node, tree: NodeTree): boolean;
 	calculate(inputs: Input, context?: Ctx): Output;
 }
 
@@ -118,6 +196,7 @@ export function defineNode(
 		outputs?: {
 			[key: string]: () => INodeInterface<any, any>;
 		};
+		onUpdate?(event: INodeUpdateEvent, node: Node, tree: NodeTree): boolean;
 	},
 	calculate?: (inputs: { [key: string]: any }, ctx: any) => { [key: string]: any }
 ): new () => INode<any, any> {
@@ -130,6 +209,7 @@ export function defineNode(
 
 		inputs = data.inputs ?? {};
 		outputs = data.outputs ?? {};
+		onUpdate = data.onUpdate;
 
 		calculate = calculate ?? (() => ({}));
 	};
@@ -138,7 +218,8 @@ export function defineNode(
 }
 
 export default class Node {
-	public type_id: string;
+	public readonly id;
+	public readonly type_id: string;
 	public position: IPosition;
 	public input_interfaces: {
 		[key: string]: INodeInterface<any, any>;
@@ -149,9 +230,46 @@ export default class Node {
 	public flow_in_interface: INodeInterface<Flow, {}> | null = null;
 	public flow_out_interface: INodeInterface<Flow, {}> | null = null;
 
-	constructor(type_id: string, position?: IPosition) {
+	constructor(id: NodeUID, type_id: string, position?: IPosition) {
+		this.id = id;
 		this.type_id = type_id;
 		this.position = position ?? { x: 0, y: 0 };
+	}
+
+	public addInputInterface(name: string, inter: INodeInterface<any, any>) {
+		this.input_interfaces[name] = inter;
+	}
+	public addOutputInterface(name: string, inter: INodeInterface<any, any>) {
+		this.output_interfaces[name] = inter;
+	}
+	public addInputInterfaces(interfaces: { [key: string]: INodeInterface<any, any> }) {
+		for (let [interID, inter] of Object.entries(interfaces)) {
+			this.input_interfaces[interID] = inter;
+		}
+	}
+	public addOutputInterfaces(interfaces: { [key: string]: INodeInterface<any, any> }) {
+		for (let [interID, inter] of Object.entries(interfaces)) {
+			this.output_interfaces[interID] = inter;
+		}
+	}
+
+	public removeInputInterfaces(tree: NodeTree, interfaces: string[]) {
+		for (let inter of interfaces) {
+			if (tree.hasConnection(this.id, inter, false)) {
+				tree.removeConnection(this.id, inter, false);
+			}
+
+			delete this.input_interfaces[inter];
+		}
+	}
+	public removeOutputInterfaces(tree: NodeTree, interfaces: string[]) {
+		for (let inter of interfaces) {
+			if (tree.hasConnection(this.id, inter, true)) {
+				tree.removeConnection(this.id, inter, true);
+			}
+
+			delete this.output_interfaces[inter];
+		}
 	}
 }
 

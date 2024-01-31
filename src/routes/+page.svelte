@@ -1,16 +1,23 @@
 <script lang="ts">
 	import Editor from '$lib/view/Editor.svelte';
 	import NodeTree from '$lib/core/nodeTree.ts';
-	import { FlowState, defineNode, type INode, type INodeInterface } from '$lib/core/node.ts';
+	import {
+		FlowState,
+		defineNode,
+		type INode,
+		type INodeInterface,
+		NewConnectionNodeEvent,
+		RemoveConnectionNodeEvent
+	} from '$lib/core/node.ts';
 	import '$lib/style/defaultEditorStyle.css';
 	import {
 		BaseTypes,
 		FlowInterface,
 		NodeInterface,
-		NumberInterface
+		NumberInterface,
+		TextInterface
 	} from '$lib/core/interfaces.ts';
 	import ForwardEngine from '$lib/engine/forwardEngine.ts';
-	import { EditorTickEvent } from '$lib/core/editor.ts';
 
 	let tree = new NodeTree();
 
@@ -72,6 +79,22 @@
 		}
 	);
 
+	const ConstantTextNode = defineNode(
+		{
+			category: 'Util',
+			id: 'consttext',
+			title: 'Constant text',
+			description: 'Returns whatever text you enter.',
+			inputs: {
+				text: () => new TextInterface('Text').setPort(false).hideDefaultTitle()
+			},
+			outputs: {
+				text: () => new NodeInterface('Text', BaseTypes.STRING)
+			}
+		},
+		(inputs) => inputs
+	);
+
 	const StartNode = defineNode({
 		category: 'Flow',
 		id: 'start',
@@ -80,10 +103,41 @@
 		flow: FlowState.OUT
 	});
 
+	const ConcatNode = defineNode(
+		{
+			category: 'Util',
+			id: 'concattext',
+			title: 'Concatenate',
+			description: 'Concatenate text.',
+			inputs: {
+				frag1: () => new TextInterface('Fragment').hideDefaultTitle()
+			},
+			outputs: {
+				result: () => new NodeInterface('Text', BaseTypes.STRING)
+			},
+			onUpdate(event, node, tree) {
+				if (event instanceof NewConnectionNodeEvent && !event.isOutgoing) {
+					node.addInputInterface(
+						`frag${Object.keys(node.input_interfaces).length + 1}`,
+						new TextInterface('Fragment').hideDefaultTitle()
+					);
+				} else if (event instanceof RemoveConnectionNodeEvent && !event.isOutgoing) {
+					node.removeInputInterfaces(tree, [`frag${Object.keys(node.input_interfaces).length}`]);
+				}
+				return true;
+			}
+		},
+		(inputs: any) => {
+			return { result: Object.values(inputs).join(' ') };
+		}
+	);
+
 	tree.registerNodeType(new AddNode());
 	tree.registerNodeType(new GreaterThanNode());
 	tree.registerNodeType(new ConsoleLogNode());
 	tree.registerNodeType(new StartNode());
+	tree.registerNodeType(new ConstantTextNode());
+	tree.registerNodeType(new ConcatNode());
 
 	function runTree() {
 		const engine = new ForwardEngine(tree);

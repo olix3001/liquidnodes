@@ -11,7 +11,7 @@
 	export let parentNodeID: string;
 	export let isOutput: boolean = true;
 
-	$: isConnected = tree.hasConnection(parentNodeID, interID);
+	$: isConnected = tree.hasConnection(parentNodeID, interID, isOutput);
 	$: showInterface = !(isConnected && inter.hideWhenConnected);
 </script>
 
@@ -21,10 +21,21 @@
 			<p class="liquidnodes_interface_title">{inter.title}</p>
 		{/if}
 		{#if inter.component && showInterface}
-			<svelte:component this={inter.component} {tree} {inter} />
+			<svelte:component
+				this={inter.component}
+				{tree}
+				{inter}
+				node={parentNodeID}
+				info={{
+					isOutput,
+					name: interID
+				}}
+			/>
 		{/if}
 	</div>
-	<Port {tree} {isOutput} {inter} {parentNodeID} portID={interID} />
+	{#if inter.hasPort}
+		<Port {tree} {isOutput} {inter} {parentNodeID} portID={interID} />
+	{/if}
 </div>
 
 <style>

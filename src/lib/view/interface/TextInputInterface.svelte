@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { NumberInterfaceProps } from '$lib/core/interfaces.ts';
 	import {
 		ChangeInterfaceValueNodeEvent,
 		type IInterfaceInfo,
@@ -11,13 +10,13 @@
 	export let node: NodeUID;
 	export let info: IInterfaceInfo;
 	export let tree: NodeTree;
-	export let inter: INodeInterface<number, NumberInterfaceProps>;
+	export let inter: INodeInterface<string, {}>;
 
 	function handleInput(e: Event) {
 		tree.notifyNodeUpdate(
 			node,
 			new ChangeInterfaceValueNodeEvent({
-				newValue: parseInt((e.target as HTMLInputElement).value),
+				newValue: (e.target as HTMLInputElement).value,
 				isOutput: info.isOutput,
 				port: info.name,
 				inter: inter
@@ -28,9 +27,9 @@
 
 <input
 	class="liquidnodes_input"
-	type="number"
+	type="text"
 	bind:value={inter.value}
-	placeholder="Enter number..."
+	placeholder="Enter text..."
 	on:input={handleInput}
 />
 

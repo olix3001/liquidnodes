@@ -20,9 +20,9 @@
 	let context = getContext<IEditorContext>(EDITOR_CONTEXT);
 
 	function beginNewConnection(e: MouseEvent) {
-		if (e.shiftKey && tree.hasConnection(parentNodeID, portID)) {
+		if (e.shiftKey && tree.hasConnection(parentNodeID, portID, isOutput)) {
 			// This is never null as we check whether this connection exists before.
-			let pconn = tree.removeConnection(parentNodeID, portID) as IConnection;
+			let pconn = tree.removeConnection(parentNodeID, portID, isOutput) as IConnection;
 			context.currently_held = {
 				node: pconn.source,
 				port: pconn.source_port,

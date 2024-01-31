@@ -129,7 +129,13 @@
 		<rect width="100%" height="100%" fill="url(#grid)"></rect>
 	</svg>
 
-	<ContextMenu {tree} editor={EDITOR} bind:handleContextMenu />
+	<ContextMenu
+		{tree}
+		editor={EDITOR}
+		offset={editorOffset}
+		zoom={editorZoom}
+		bind:handleContextMenu
+	/>
 	<div class="liquidnodes_editor_main" style={transform} bind:this={EDITOR_MAIN}>
 		<svg class="liquidnodes_connections" style={inverseTransform}>
 			{#each Object.keys(tree.connections) as connectionUID (connectionUID)}
