@@ -5,13 +5,13 @@ import type { IConnection, INode, INodeIO, INodeInterface, NodeUID } from './nod
 import { v4 as uuidv4 } from 'uuid';
 
 export default class NodeTree {
-	private registered_node_types: { [key: string]: INode<any, any> } = {};
+	private registered_node_types: { [key: string]: INode<any, any, any> } = {};
 	public nodes: { [key: NodeUID]: Node } = {};
 	public connections: { [key: string]: IConnection } = {};
 	public readonly categories: { [key: string]: string[] } = {};
 	public readonly supportsFlow: boolean = true;
 
-	registerNodeType<I extends INodeIO, O extends INodeIO>(node: INode<I, O>) {
+	registerNodeType<I extends INodeIO, O extends INodeIO>(node: INode<I, O, any>) {
 		if (!this.supportsFlow && node.flow != FlowState.NONE) {
 			throw 'This node tree does not support flow';
 		}
@@ -22,7 +22,7 @@ export default class NodeTree {
 		this.categories[node.category].push(node.id);
 	}
 
-	getNodeType<I extends INodeIO = any, O extends INodeIO = any>(type: string): INode<I, O> {
+	getNodeType<I extends INodeIO = any, O extends INodeIO = any>(type: string): INode<I, O, any> {
 		return this.registered_node_types[type];
 	}
 

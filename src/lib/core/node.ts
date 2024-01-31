@@ -53,9 +53,21 @@ export class NodeInterfaceType<Ty> {
 	}
 	canConnectWithID(target: string): boolean {
 		if (this.id == target) return true;
+		if (target == 'ANY') return true;
 		if (this.conversions['ANY']) return true;
 		if (this.conversions[target]) return true;
 		return false;
+	}
+
+	convertTo<OT>(target: NodeInterfaceType<OT>, value: Ty): OT {
+		return this.convertToID(target.id, value) as OT;
+	}
+	convertToID(target: string, value: Ty): any {
+		if (this.id == target) return value;
+		if (target == 'ANY') return value;
+		if (this.conversions[target]) return this.conversions[target](value);
+		if (this.conversions['ANY']) return value;
+		return null;
 	}
 }
 
@@ -77,7 +89,7 @@ export class FlowState {
 		this.hasFlowOutput = hasFlowOutput;
 	}
 }
-export interface INode<Input extends INodeIO, Output extends INodeIO> {
+export interface INode<Input extends INodeIO, Output extends INodeIO, Ctx = {}> {
 	category: string;
 	id: string;
 	title: string;
@@ -90,7 +102,7 @@ export interface INode<Input extends INodeIO, Output extends INodeIO> {
 		[K in keyof Output]: () => INodeInterface<Output[K], any>;
 	};
 
-	calculate(inputs: Input): Output;
+	calculate(inputs: Input, context?: Ctx): Output;
 }
 
 export default class Node {

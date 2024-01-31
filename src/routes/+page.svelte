@@ -10,6 +10,7 @@
 		NodeInterface,
 		NumberInterface
 	} from '$lib/core/interfaces.ts';
+	import ForwardEngine from '$lib/engine/forwardEngine.ts';
 
 	let tree = new NodeTree();
 
@@ -28,7 +29,7 @@
 		category = 'Comparison';
 		id = 'greaterthan';
 		title = 'Greater Than';
-		description = 'Check if a > b';
+		description = 'Check if a > b.';
 		flow = FlowState.IN;
 		inputs = {
 			a: () => new NumberInterface('A'),
@@ -47,36 +48,8 @@
 			return {};
 		}
 	}
-	class MySecondNodeType
-		implements
-			INode<
-				{
-					string: string;
-				},
-				{
-					number: number;
-				}
-			>
-	{
-		category = 'Test';
-		id = 'myothernode';
-		title = 'Convert';
-		description = 'Convert string to number';
-		flow = FlowState.IN_OUT;
-		inputs = {
-			string: () => new NodeInterface('String', BaseTypes.STRING)
-		};
-		outputs = {
-			number: () => new NodeInterface('Number', BaseTypes.NUMBER)
-		};
 
-		calculate({ string }: { string: string }): { number: number } {
-			return {
-				number: parseInt(string)
-			};
-		}
-	}
-	class MyNodeType
+	class AddNode
 		implements
 			INode<
 				{
@@ -88,11 +61,11 @@
 				}
 			>
 	{
-		category = 'Test';
-		id = 'mytestnode';
+		category = 'Math';
+		id = 'addition';
 		title = 'Add';
-		description = 'Add two numbers together';
-		flow = FlowState.IN;
+		description = 'Add two numbers together.';
+		flow = FlowState.NONE;
 		inputs = {
 			a: () => new NumberInterface('Number'),
 			b: () => new NumberInterface('Number')
@@ -108,17 +81,59 @@
 		}
 	}
 
-	tree.registerNodeType(new MyNodeType());
-	tree.registerNodeType(new MySecondNodeType());
+	class ConsoleLogNode
+		implements
+			INode<
+				{
+					value: any;
+				},
+				{}
+			>
+	{
+		category = 'Util';
+		id = 'consolelog';
+		title = 'Debug Print';
+		description = 'Prints value to the debug console.';
+		flow = FlowState.IN_OUT;
+		inputs = {
+			value: () => new NodeInterface('Value', BaseTypes.ANY)
+		};
+		outputs = {};
+		calculate({ value }: { value: any }): {} {
+			console.log(value);
+			return {};
+		}
+	}
+
+	class StartNode implements INode<{}, {}> {
+		category = 'Flow';
+		id = 'start';
+		title = 'Start';
+		description = 'Entry point for your program';
+		flow = FlowState.OUT;
+		inputs = {};
+		outputs = {};
+		calculate(inputs: {}): {} {
+			return {};
+		}
+	}
+
+	tree.registerNodeType(new AddNode());
 	tree.registerNodeType(new GreaterThanNode());
-	let a = tree.insertNodeAt('mytestnode', { x: 0, y: 0 });
-	let b = tree.insertNodeAt('mytestnode', { x: 250, y: 0 });
-	let c = tree.insertNodeAt('myothernode', { x: 100, y: 250 });
-	let d = tree.insertNodeAt('greaterthan', { x: 280, y: 250 });
+	tree.registerNodeType(new ConsoleLogNode());
+	tree.registerNodeType(new StartNode());
+
+	function runTree() {
+		const engine = new ForwardEngine(tree);
+		engine.runFromType('start');
+	}
 </script>
 
 <div class="screen">
 	<Editor {tree} />
+	<div class="runner">
+		<button on:click={runTree}>Run from start</button>
+	</div>
 </div>
 
 <style>
@@ -127,10 +142,20 @@
 		height: 100vh;
 		margin: 0;
 		padding: 0;
+		position: relative;
 	}
 
 	:global(body) {
 		padding: 0;
 		margin: 0;
+	}
+
+	.runner {
+		position: absolute;
+		right: 0;
+		top: 0;
+		backdrop-filter: blur(2px) saturate(180%);
+		border-radius: 10px;
+		padding: 1em;
 	}
 </style>

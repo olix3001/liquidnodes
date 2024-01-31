@@ -51,7 +51,7 @@ export class Flow {
 }
 
 export class BaseTypes {
-	public static readonly ANY = new NodeInterfaceType<any>('ANY');
+	public static readonly ANY = new NodeInterfaceType<any>('ANY').withColor('#8338f9');
 	public static readonly NUMBER = new NodeInterfaceType<number>('number')
 		.withColor('#2f904b')
 		.addConversionUnsafe('string', (n) => n.toString());
