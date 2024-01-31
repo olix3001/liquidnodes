@@ -105,6 +105,38 @@ export interface INode<Input extends INodeIO, Output extends INodeIO, Ctx = {}> 
 	calculate(inputs: Input, context?: Ctx): Output;
 }
 
+export function defineNode(
+	data: {
+		category: string;
+		id: string;
+		title: string;
+		description: string;
+		flow?: FlowState;
+		inputs?: {
+			[key: string]: () => INodeInterface<any, any>;
+		};
+		outputs?: {
+			[key: string]: () => INodeInterface<any, any>;
+		};
+	},
+	calculate?: (inputs: { [key: string]: any }, ctx: any) => { [key: string]: any }
+): new () => INode<any, any> {
+	const mynodeclass = class MyNodeClass implements INode<any, any> {
+		category = data.category;
+		id = data.id;
+		title = data.title;
+		description = data.description;
+		flow = data.flow ?? FlowState.NONE;
+
+		inputs = data.inputs ?? {};
+		outputs = data.outputs ?? {};
+
+		calculate = calculate ?? (() => ({}));
+	};
+	Object.defineProperty(mynodeclass.constructor, 'name', `NodeType_${data.id}`);
+	return mynodeclass;
+}
+
 export default class Node {
 	public type_id: string;
 	public position: IPosition;

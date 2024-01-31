@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Editor from '$lib/view/Editor.svelte';
 	import NodeTree from '$lib/core/nodeTree.ts';
-	import { FlowState, type INode, type INodeInterface } from '$lib/core/node.ts';
+	import { FlowState, defineNode, type INode, type INodeInterface } from '$lib/core/node.ts';
 	import '$lib/style/defaultEditorStyle.css';
 	import {
 		BaseTypes,
@@ -14,109 +14,70 @@
 
 	let tree = new NodeTree();
 
-	class GreaterThanNode
-		implements
-			INode<
-				{
-					a: number;
-					b: number;
-					trueF: Flow;
-					falseF: Flow;
-				},
-				{}
-			>
-	{
-		category = 'Comparison';
-		id = 'greaterthan';
-		title = 'Greater Than';
-		description = 'Check if a > b.';
-		flow = FlowState.IN;
-		inputs = {
-			a: () => new NumberInterface('A'),
-			b: () => new NumberInterface('B'),
-			trueF: () => new FlowInterface('True'),
-			falseF: () => new FlowInterface('False')
-		};
-		outputs = {};
-
-		calculate({ a, b, trueF, falseF }: { a: number; b: number; trueF: Flow; falseF: Flow }): {} {
-			if (a > b) {
-				trueF.fire();
-			} else {
-				falseF.fire();
+	const GreaterThanNode = defineNode(
+		{
+			category: 'Comparison',
+			id: 'greaterthan',
+			title: 'Greater Than',
+			description: 'Check if A > B.',
+			flow: FlowState.IN,
+			inputs: {
+				a: () => new NumberInterface('A'),
+				b: () => new NumberInterface('B'),
+				flow_true: () => new FlowInterface('True'),
+				flow_false: () => new FlowInterface('False')
 			}
+		},
+		({ a, b, flow_true, flow_false }) => {
+			if (a > b) flow_true.fire();
+			else flow_false.fire();
 			return {};
 		}
-	}
+	);
 
-	class AddNode
-		implements
-			INode<
-				{
-					a: number;
-					b: number;
-				},
-				{
-					result: number;
-				}
-			>
-	{
-		category = 'Math';
-		id = 'addition';
-		title = 'Add';
-		description = 'Add two numbers together.';
-		flow = FlowState.NONE;
-		inputs = {
-			a: () => new NumberInterface('Number'),
-			b: () => new NumberInterface('Number')
-		};
-		outputs = {
-			result: () => new NodeInterface<number>('Result', BaseTypes.NUMBER)
-		};
-
-		calculate({ a, b }: { a: number; b: number }): { result: number } {
+	const AddNode = defineNode(
+		{
+			category: 'Math',
+			id: 'addition',
+			title: 'Add',
+			description: 'Add two numbers together.',
+			inputs: {
+				a: () => new NumberInterface('Number'),
+				b: () => new NumberInterface('Number')
+			},
+			outputs: {
+				result: () => new NodeInterface('Result', BaseTypes.NUMBER)
+			}
+		},
+		({ a, b }) => {
 			return {
 				result: a + b
 			};
 		}
-	}
-
-	class ConsoleLogNode
-		implements
-			INode<
-				{
-					value: any;
-				},
-				{}
-			>
-	{
-		category = 'Util';
-		id = 'consolelog';
-		title = 'Debug Print';
-		description = 'Prints value to the debug console.';
-		flow = FlowState.IN_OUT;
-		inputs = {
-			value: () => new NodeInterface('Value', BaseTypes.ANY)
-		};
-		outputs = {};
-		calculate({ value }: { value: any }): {} {
+	);
+	const ConsoleLogNode = defineNode(
+		{
+			category: 'Util',
+			id: 'consolelog',
+			title: 'Debug Print',
+			description: 'Prints value to the console.',
+			flow: FlowState.IN_OUT,
+			inputs: {
+				value: () => new NodeInterface('Value', BaseTypes.ANY)
+			}
+		},
+		({ value }) => {
 			console.log(value);
 			return {};
 		}
-	}
+	);
 
-	class StartNode implements INode<{}, {}> {
-		category = 'Flow';
-		id = 'start';
-		title = 'Start';
-		description = 'Entry point for your program';
-		flow = FlowState.OUT;
-		inputs = {};
-		outputs = {};
-		calculate(inputs: {}): {} {
-			return {};
-		}
-	}
+	const StartNode = defineNode({
+		category: 'Flow',
+		id: 'start',
+		title: 'Start',
+		description: 'Entry point for your program.'
+	});
 
 	tree.registerNodeType(new AddNode());
 	tree.registerNodeType(new GreaterThanNode());
