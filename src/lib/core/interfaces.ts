@@ -2,6 +2,7 @@ import type { ComponentType, SvelteComponent } from 'svelte';
 import { type INodeInterface, NodeInterfaceType, type NodeInterfaceComponent } from './node.ts';
 import NumberInputInterface from '$lib/view/interface/NumberInputInterface.svelte';
 import TextInputInterface from '$lib/view/interface/TextInputInterface.svelte';
+import BooleanInputInterface from '$lib/view/interface/BooleanInputInterface.svelte';
 
 abstract class NodeInterfaceBuilderMethods<Ty, Props> implements INodeInterface<Ty, Props> {
 	abstract type: NodeInterfaceType<Ty>;
@@ -57,6 +58,7 @@ export class BaseTypes {
 		.withColor('#2f904b')
 		.addConversionUnsafe('string', (number) => number.toString());
 	public static readonly STRING = new NodeInterfaceType<string>('string').withColor('#eeab2c');
+	public static readonly BOOLEAN = new NodeInterfaceType<boolean>('boolean').withColor('#ee5339');
 	public static readonly FLOW = new NodeInterfaceType<Flow>('FLOW').withColor('#fff');
 }
 
@@ -91,6 +93,15 @@ export class TextInterface extends NodeInterfaceBuilderMethods<string, {}> {
 	constructor(title: string) {
 		super(title, {});
 		this.withComponent(TextInputInterface).withDefaultValue('');
+	}
+}
+
+export class BooleanInterface extends NodeInterfaceBuilderMethods<boolean, {}> {
+	type = BaseTypes.BOOLEAN;
+
+	constructor(title: string) {
+		super(title, {});
+		this.withComponent(BooleanInputInterface).withDefaultValue(false).hideDefaultTitle();
 	}
 }
 

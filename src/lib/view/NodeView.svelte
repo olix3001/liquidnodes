@@ -4,6 +4,7 @@
 	import { beforeUpdate, getContext, onDestroy } from 'svelte';
 	import InterfaceView from './InterfaceView.svelte';
 	import Port from './Port.svelte';
+	import { scale } from 'svelte/transition';
 
 	export let tree: NodeTree;
 	export let nodeID: string;
@@ -89,6 +90,8 @@
 	{id}
 	bind:this={context.nodes[nodeID]}
 	class:liquidnodes_selected={$selectedNodes.includes(nodeID)}
+	in:scale={{ duration: 200 }}
+	out:scale={{ duration: 200 }}
 >
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="liquidnodes_node_header" on:mousedown|stopPropagation|preventDefault={startDrag}>

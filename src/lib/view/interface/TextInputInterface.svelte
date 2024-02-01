@@ -46,10 +46,4 @@
 	.liquidnodes_input:focus {
 		outline: 1px solid var(--liquidnodes-node-highlight);
 	}
-
-	.liquidnodes_input::-webkit-outer-spin-button,
-	.liquidnodes_input::-webkit-inner-spin-button {
-		appearance: none;
-		margin: 0;
-	}
 </style>

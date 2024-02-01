@@ -4,14 +4,13 @@
 	import {
 		FlowState,
 		defineNode,
-		type INode,
-		type INodeInterface,
 		NewConnectionNodeEvent,
 		RemoveConnectionNodeEvent
 	} from '$lib/core/node.ts';
 	import '$lib/style/defaultEditorStyle.css';
 	import {
 		BaseTypes,
+		BooleanInterface,
 		FlowInterface,
 		NodeInterface,
 		NumberInterface,
@@ -95,6 +94,22 @@
 		(inputs) => inputs
 	);
 
+	const ConstantBooleanNode = defineNode(
+		{
+			category: 'Util',
+			id: 'constbool',
+			title: 'Constant boolean',
+			description: 'Returns true if checkbox is selected.',
+			inputs: {
+				value: () => new BooleanInterface('Value').setPort(false)
+			},
+			outputs: {
+				value: () => new NodeInterface('Value', BaseTypes.BOOLEAN)
+			}
+		},
+		(inputs) => inputs
+	);
+
 	const StartNode = defineNode({
 		category: 'Flow',
 		id: 'start',
@@ -137,6 +152,7 @@
 	tree.registerNodeType(new ConsoleLogNode());
 	tree.registerNodeType(new StartNode());
 	tree.registerNodeType(new ConstantTextNode());
+	tree.registerNodeType(new ConstantBooleanNode());
 	tree.registerNodeType(new ConcatNode());
 
 	function runTree() {

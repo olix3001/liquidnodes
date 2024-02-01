@@ -16,7 +16,7 @@
 </script>
 
 <div class="liquidnodes_interface" class:liquidnodes_interface_output={isOutput}>
-	<div class="liquidnodes_interface_content">
+	<div class="liquidnodes_interface_content" style="--liquidnodes-inter-color: {inter.type.color};">
 		{#if inter.displayDefaultTitle || !showInterface}
 			<p class="liquidnodes_interface_title">{inter.title}</p>
 		{/if}
