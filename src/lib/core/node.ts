@@ -271,6 +271,17 @@ export default class Node {
 			delete this.output_interfaces[inter];
 		}
 	}
+	public retainInputs(tree: NodeTree, interfaces: string[]) {
+		for (let inter of Object.keys(this.input_interfaces)) {
+			if (!interfaces.includes(inter)) {
+				if (tree.hasConnection(this.id, inter, false)) {
+					tree.removeConnection(this.id, inter, false);
+				}
+
+				delete this.input_interfaces[inter];
+			}
+		}
+	}
 }
 
 export interface IConnection {

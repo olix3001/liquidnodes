@@ -30,7 +30,11 @@
 		ports: {},
 		currently_held: null,
 		editor: null,
-		selectedNodes: writable([])
+		selectedNodes: writable([]),
+		dragContext: writable({
+			isDragging: false,
+			delta: { x: 0, y: 0 }
+		})
 	});
 	let selectedNodes = context.selectedNodes;
 

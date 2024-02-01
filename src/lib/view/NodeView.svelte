@@ -13,41 +13,73 @@
 	$: mtype = tree.getNodeType(node.type_id);
 	$: position = `left: ${node.position.x}px; top: ${node.position.y}px;`;
 	$: id = `liquidnodes_node_${nodeID}`;
-	let isSelected: boolean = false;
 
-	let isDragging: boolean = false;
+	let dragStartTime: number = Date.now();
 	let context = getContext<IEditorContext>(EDITOR_CONTEXT);
 
-	let unsubscribe_selected = context.selectedNodes.subscribe((selectedNodes) => {
-		isSelected = selectedNodes.includes(nodeID);
-	});
+	let selectedNodes = context.selectedNodes;
+	let dragContext = context.dragContext;
+	let unsubscribeMovement: any = null;
 
 	$: melement = context.nodes[nodeID];
 
 	function startDrag(event: MouseEvent) {
 		if (event.button == 0) {
-			isDragging = true;
-			context.selectedNodes.set([nodeID]);
+			$dragContext.delta = { x: 0, y: 0 };
+			$dragContext.isDragging = true;
+			if (event.shiftKey) {
+				context.selectedNodes.update((selectedNodes) => {
+					if (!selectedNodes.includes(nodeID)) selectedNodes.push(nodeID);
+					return selectedNodes;
+				});
+			} else if (!$selectedNodes.includes(nodeID)) {
+				context.selectedNodes.set([nodeID]);
+			} else {
+				dragStartTime = Date.now();
+			}
+			subscribeMovement();
+		}
+	}
+
+	function subscribeMovement() {
+		const startPosition = { x: node.position.x, y: node.position.y };
+		if (!unsubscribeMovement)
+			unsubscribeMovement = dragContext.subscribe((context) => {
+				if ($selectedNodes.includes(nodeID)) {
+					node.position.x = startPosition.x + context.delta.x;
+					node.position.y = startPosition.y + context.delta.y;
+				}
+			});
+	}
+	function tryUnsubscribeMovement() {
+		if (unsubscribeMovement) {
+			unsubscribeMovement();
+			unsubscribeMovement = null;
 		}
 	}
 
 	function stopDrag(event: MouseEvent) {
 		if (event.button == 0) {
-			isDragging = false;
+			$dragContext.isDragging = false;
+			if (Date.now() - dragStartTime < 250) {
+				context.selectedNodes.set([nodeID]);
+			}
 		}
 	}
 
 	function moveNode(event: MouseEvent) {
-		if (isDragging) {
-			node.position.x += event.movementX * (1 / zoom);
-			node.position.y += event.movementY * (1 / zoom);
+		if ($dragContext.isDragging && $selectedNodes[0] == nodeID) {
+			$dragContext.delta.x += event.movementX * (1 / zoom);
+			$dragContext.delta.y += event.movementY * (1 / zoom);
 		}
 	}
-	beforeUpdate(() => {
+	beforeUpdate(async () => {
 		if (melement) melement.dispatchEvent(new NodeMoveEvent());
-	});
-	onDestroy(() => {
-		unsubscribe_selected();
+		if (!$selectedNodes.includes(nodeID) || !$dragContext.isDragging) {
+			tryUnsubscribeMovement();
+		} else if ($dragContext.isDragging) {
+			subscribeMovement();
+		}
 	});
 </script>
 
@@ -56,7 +88,7 @@
 	style={position}
 	{id}
 	bind:this={context.nodes[nodeID]}
-	class:liquidnodes_selected={isSelected}
+	class:liquidnodes_selected={$selectedNodes.includes(nodeID)}
 >
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class="liquidnodes_node_header" on:mousedown|stopPropagation|preventDefault={startDrag}>

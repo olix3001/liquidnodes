@@ -1,5 +1,6 @@
 import type { Writable } from 'svelte/store';
 import type { NodeUID } from './node.ts';
+import type { IPosition } from './common.ts';
 
 export const EDITOR_CONTEXT = Symbol();
 export interface IEditorContext {
@@ -8,6 +9,10 @@ export interface IEditorContext {
 	currently_held: ICurrentlyHeldConnection | null;
 	editor: HTMLDivElement | null;
 	selectedNodes: Writable<string[]>;
+	dragContext: Writable<{
+		isDragging: boolean;
+		delta: IPosition;
+	}>;
 }
 
 export interface IPortPositions {
