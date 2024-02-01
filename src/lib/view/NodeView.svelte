@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { EDITOR_CONTEXT, type IEditorContext, NodeMoveEvent } from '$lib/core/editor.ts';
 	import type NodeTree from '$lib/core/nodeTree.ts';
-	import { beforeUpdate, getContext, onDestroy } from 'svelte';
+	import { beforeUpdate, getContext, onDestroy, onMount } from 'svelte';
 	import InterfaceView from './InterfaceView.svelte';
 	import Port from './Port.svelte';
 	import { scale } from 'svelte/transition';
@@ -22,7 +22,8 @@
 	let dragContext = context.dragContext;
 	let unsubscribeMovement: any = null;
 
-	$: melement = context.nodes[nodeID];
+	let melement: HTMLDivElement;
+	let updateCounter: number = 0;
 
 	function startDrag(event: MouseEvent) {
 		if (event.button == 0) {
@@ -81,6 +82,22 @@
 		} else if ($dragContext.isDragging) {
 			subscribeMovement();
 		}
+	});
+
+	function updateNode() {
+		// This should force node to reload...
+		// Looking for more explicit ways of doing this
+		node.input_interfaces = node.input_interfaces;
+		node.output_interfaces = node.output_interfaces;
+		console.log('bruh');
+	}
+
+	onMount(() => {
+		melement = context.nodes[nodeID];
+		melement.addEventListener('node_update', updateNode);
+		return () => {
+			melement.removeEventListener('node_update', updateNode);
+		};
 	});
 </script>
 

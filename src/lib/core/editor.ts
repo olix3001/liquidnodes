@@ -66,6 +66,11 @@ export class NodeMoveEvent extends Event {
 		super('node_move');
 	}
 }
+export class UpdateNodeEvent extends Event {
+	constructor() {
+		super('node_update');
+	}
+}
 export class EditorTickEvent extends Event {
 	constructor() {
 		super('editor_tick', {

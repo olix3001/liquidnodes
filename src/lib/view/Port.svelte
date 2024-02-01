@@ -14,8 +14,6 @@
 	export let isOutput: boolean = true;
 	export let isFlow: boolean = false;
 
-	let color = inter.type.color;
-
 	$: id = `${isOutput ? 'out' : 'in'}_${parentNodeID}_${portID}`;
 	let context = getContext<IEditorContext>(EDITOR_CONTEXT);
 
@@ -59,7 +57,7 @@
 	class:liquidnodes_port_right={isOutput}
 	class:liquidnodes_port_left={!isOutput}
 	id="liquidnodes_port_{id}"
-	style="background-color: {color}; {isFlow ? 'top: 0.8em' : ''};"
+	style="background-color: {inter.type.color}; {isFlow ? 'top: 0.8em' : ''};"
 	bind:this={context.ports[id]}
 	on:mousedown|stopPropagation|preventDefault={beginNewConnection}
 	on:mouseup|preventDefault={tryCreateConnection}

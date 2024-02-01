@@ -3,6 +3,7 @@ import { type INodeInterface, NodeInterfaceType, type NodeInterfaceComponent } f
 import NumberInputInterface from '$lib/view/interface/NumberInputInterface.svelte';
 import TextInputInterface from '$lib/view/interface/TextInputInterface.svelte';
 import BooleanInputInterface from '$lib/view/interface/BooleanInputInterface.svelte';
+import { writable, type Writable } from 'svelte/store';
 
 abstract class NodeInterfaceBuilderMethods<Ty, Props> implements INodeInterface<Ty, Props> {
 	abstract type: NodeInterfaceType<Ty>;

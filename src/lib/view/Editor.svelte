@@ -36,6 +36,7 @@
 			delta: { x: 0, y: 0 }
 		})
 	});
+	tree.updateEditorContext(context);
 	let selectedNodes = context.selectedNodes;
 
 	function handleMouseDown(event: MouseEvent) {

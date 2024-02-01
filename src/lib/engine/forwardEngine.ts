@@ -47,7 +47,7 @@ export default class ForwardEngine {
 		let current = node;
 		while (true) {
 			this.runNode(current);
-			const flowConn = this.findConnectionFrom(current, '__flow_out');
+			const flowConn = this.tree.getConnectionFromSource(current, '__flow_out');
 			if (!flowConn) break;
 			current = flowConn[1].target;
 		}
@@ -57,7 +57,15 @@ export default class ForwardEngine {
 		const deps = this.getNodeDependencies(node);
 		// Run node dependencies
 		for (let conn of Object.values(deps)) {
-			if (!(conn.source in this.cachedOutputs)) this.runNode(conn.source);
+			if (!(conn.source in this.cachedOutputs)) {
+				if (this.isNodeUsingFlow(conn.source)) {
+					throw {
+						node: conn.source,
+						message: 'Node has not been run yet.'
+					};
+				}
+				this.runNode(conn.source);
+			}
 		}
 
 		// Get node and type
@@ -76,7 +84,7 @@ export default class ForwardEngine {
 		// Custom flow outputs
 		for (let [interID, inter] of Object.entries(n.output_interfaces)) {
 			if (inter instanceof FlowInterface) {
-				const target = this.findConnectionFrom(node, interID);
+				const target = this.tree.getConnectionFromSource(node, interID);
 				if (target) {
 					inputs[interID] = new ForwardEngineFlow(this, target[1].target);
 				}
@@ -94,6 +102,13 @@ export default class ForwardEngine {
 		this.cachedOutputs[node] = result;
 	}
 
+	isNodeUsingFlow(node: NodeUID): boolean {
+		const n = this.tree.nodes[node];
+		const ty = this.tree.getNodeType(n.type_id);
+
+		return ty.flow.hasFlowInput || ty.flow.hasFlowOutput;
+	}
+
 	getNodeDependencies(node: NodeUID) {
 		const dependencies: { [key: string]: IConnection } = {};
 		for (let [connID, conn] of Object.entries(this.tree.connections)) {
@@ -101,12 +116,5 @@ export default class ForwardEngine {
 			if (conn.target == node) dependencies[connID] = conn;
 		}
 		return dependencies;
-	}
-
-	findConnectionFrom(node: NodeUID, port: string): [string, IConnection] | null {
-		for (let [connID, conn] of Object.entries(this.tree.connections)) {
-			if (conn.source == node && conn.source_port == port) return [connID, conn];
-		}
-		return null;
 	}
 }

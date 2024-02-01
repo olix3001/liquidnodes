@@ -1,13 +1,14 @@
 import { Result, type IPosition } from './common.ts';
+import { UpdateNodeEvent, type IEditorContext, EditorTickEvent } from './editor.ts';
 import { type Flow, FlowInterface } from './interfaces.ts';
 import Node, { FlowState, NewConnectionNodeEvent, RemoveConnectionNodeEvent } from './node.js';
-import type {
-	IConnection,
-	INode,
-	INodeIO,
-	INodeInterface,
-	INodeUpdateEvent,
-	NodeUID
+import {
+	type IConnection,
+	type INode,
+	type INodeIO,
+	type INodeInterface,
+	NodeUpdateEvent,
+	type NodeUID
 } from './node.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,7 +18,11 @@ export default class NodeTree {
 	public connections: { [key: string]: IConnection } = {};
 	public readonly categories: { [key: string]: string[] } = {};
 	public readonly supportsFlow: boolean = true;
+	private EDITOR_CONTEXT: IEditorContext | null = null;
 
+	updateEditorContext(ctx: IEditorContext | null) {
+		this.EDITOR_CONTEXT = ctx;
+	}
 	registerNodeType<I extends INodeIO, O extends INodeIO>(node: INode<I, O, any>) {
 		if (!this.supportsFlow && node.flow != FlowState.NONE) {
 			throw 'This node tree does not support flow';
@@ -68,6 +73,7 @@ export default class NodeTree {
 		if (ty.flow.hasFlowOutput) {
 			node.flow_out_interface = new FlowInterface('<flow_out>').alwaysHide();
 		}
+		if (ty.onCreate) ty.onCreate(node, this);
 		this.nodes[uid] = node;
 		return Result.ok(uid);
 	}
@@ -85,22 +91,36 @@ export default class NodeTree {
 		if (!A_inter.type.canConnectWith(B_inter.type)) return;
 
 		let uid = uuidv4();
-		this.connections[uid] = {
+		const conn: IConnection = {
 			source: nodeA,
 			source_port: portA,
 			target: nodeB,
 			target_port: portB
 		};
-		const conn = this.connections[uid];
-		this.notifyNodeUpdate(nodeA, new NewConnectionNodeEvent(conn, true, conn.source_port));
-		this.notifyNodeUpdate(nodeB, new NewConnectionNodeEvent(conn, false, conn.target_port));
+		const types = {
+			out: A_inter.type,
+			in: B_inter.type
+		};
+		if (
+			!this.notifyNodeUpdate(
+				nodeA,
+				new NewConnectionNodeEvent(conn, true, conn.source_port, types)
+			).isCancelled() &&
+			!this.notifyNodeUpdate(
+				nodeB,
+				new NewConnectionNodeEvent(conn, false, conn.target_port, types)
+			).isCancelled()
+		)
+			this.connections[uid] = conn;
 	}
 
 	hasConnection(node: NodeUID, inter: string, isOutput: boolean): boolean {
-		return !!Object.values(this.connections).find(
-			(c) =>
-				(isOutput && c.source == node && c.source_port == inter) ||
-				(!isOutput && c.target == node && c.target_port == inter)
+		return (
+			Object.values(this.connections).find(
+				(c) =>
+					(isOutput && c.source == node && c.source_port == inter) ||
+					(!isOutput && c.target == node && c.target_port == inter)
+			) !== undefined
 		);
 	}
 
@@ -113,15 +133,18 @@ export default class NodeTree {
 
 		if (connection) {
 			delete this.connections[connection[0]];
-
-			this.notifyNodeUpdate(
-				connection[1].source,
-				new RemoveConnectionNodeEvent(connection[1], true, connection[1].source_port)
-			);
-			this.notifyNodeUpdate(
-				connection[1].target,
-				new RemoveConnectionNodeEvent(connection[1], false, connection[1].target_port)
-			);
+			if (
+				this.notifyNodeUpdate(
+					connection[1].source,
+					new RemoveConnectionNodeEvent(connection[1], true, connection[1].source_port)
+				).isCancelled() ||
+				this.notifyNodeUpdate(
+					connection[1].target,
+					new RemoveConnectionNodeEvent(connection[1], false, connection[1].target_port)
+				).isCancelled()
+			) {
+				this.connections[connection[0]] = connection[1];
+			}
 
 			return connection[1];
 		}
@@ -146,9 +169,32 @@ export default class NodeTree {
 		delete this.nodes[node];
 	}
 
-	notifyNodeUpdate(node: NodeUID, event: INodeUpdateEvent) {
+	notifyNodeUpdate(node: NodeUID, event: NodeUpdateEvent): NodeUpdateEvent {
 		const n = this.nodes[node];
 		const nTy = this.getNodeType(n.type_id);
-		if (nTy?.onUpdate) nTy.onUpdate(event, n, this);
+		if (nTy?.onUpdate) {
+			nTy.onUpdate(event, n, this);
+		}
+		return event;
+	}
+
+	getConnectionToTarget(node: NodeUID, port: string): [string, IConnection] | null {
+		const conn = Object.entries(this.connections).find(
+			(c) => c[1].target == node && c[1].target_port == port
+		);
+
+		if (!conn) return null;
+
+		return conn;
+	}
+
+	getConnectionFromSource(node: NodeUID, port: string): [string, IConnection] | null {
+		const conn = Object.entries(this.connections).find(
+			(c) => c[1].source == node && c[1].source_port == port
+		);
+
+		if (!conn) return null;
+
+		return conn;
 	}
 }
