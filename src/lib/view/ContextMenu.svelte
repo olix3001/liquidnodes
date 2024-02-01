@@ -4,6 +4,7 @@
 	import { tick } from 'svelte';
 	import { ChevronRight } from 'lucide-svelte';
 	import { EditorTickEvent } from '$lib/core/editor.ts';
+	import { type INode } from '$lib/core/node.ts';
 
 	let INPUT: HTMLInputElement;
 
@@ -12,6 +13,7 @@
 		x: 0,
 		y: 0
 	};
+	let searchResult: string[] | null = null;
 
 	$: transformStyle = `transform: translate(${position.x}px, ${position.y}px)`;
 
@@ -30,6 +32,8 @@
 		INPUT.focus();
 	}
 	function handleCloseContext() {
+		if (INPUT) INPUT.value = '';
+		searchResult = null;
 		isContextMenuOpen = false;
 	}
 	function insertNode(nodeID: string) {
@@ -41,25 +45,53 @@
 		// Refresh editor
 		INPUT.dispatchEvent(new EditorTickEvent());
 	}
+
+	function matchesSearch(search: string, node: INode<any, any, any>): boolean {
+		return node.title.toLowerCase().includes(search.toLowerCase());
+	}
+
+	function updateSearch(e: Event) {
+		const search = (e.target as HTMLInputElement).value;
+		if (search === '') {
+			searchResult = null;
+		} else {
+			const searchR: string[] = [];
+			for (let category of Object.values(tree.categories)) {
+				for (let node of category) {
+					if (matchesSearch(search, tree.getNodeType(node))) searchR.push(node);
+				}
+			}
+			searchResult = searchR;
+		}
+	}
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 {#if isContextMenuOpen}
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div class="liquidnodes_context_menu" style={transformStyle} on:click|stopPropagation>
-		<input placeholder="Search" bind:this={INPUT} />
+		<input placeholder="Search" bind:this={INPUT} on:input={updateSearch} />
 		<div class="liquidnodes_context_categories">
-			{#each Object.entries(tree.categories) as category (category[0])}
-				<div class="liquidnodes_context_category">
-					<p>{category[0]}</p>
-					<ChevronRight size={15} />
-					<div class="liquidnodes_context_node_list">
-						{#each category[1] as nodeID (nodeID)}
-							<button on:click={() => insertNode(nodeID)}>{tree.getNodeType(nodeID).title}</button>
-						{/each}
+			{#if searchResult == null}
+				{#each Object.entries(tree.categories) as category (category[0])}
+					<div class="liquidnodes_context_category">
+						<p>{category[0]}</p>
+						<ChevronRight size={15} />
+						<div class="liquidnodes_context_node_list">
+							{#each category[1] as nodeID (nodeID)}
+								<button on:click={() => insertNode(nodeID)}>{tree.getNodeType(nodeID).title}</button
+								>
+							{/each}
+						</div>
 					</div>
+				{/each}
+			{:else}
+				<div class="liquidnodes_context_categories">
+					{#each searchResult as nodeID (nodeID)}
+						<button on:click={() => insertNode(nodeID)}>{tree.getNodeType(nodeID).title}</button>
+					{/each}
 				</div>
-			{/each}
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -82,6 +114,20 @@
 		flex-direction: column;
 		margin-top: 0.5em;
 		gap: 0.35em;
+	}
+
+	.liquidnodes_context_categories > button {
+		margin: 0;
+		padding: 0.3em 0.75em;
+		border-radius: 2px;
+		border: none;
+		background-color: var(--liquidnodes-node-background);
+		cursor: pointer;
+		color: var(--liquidnodes-node-text);
+		text-align: start;
+	}
+	.liquidnodes_context_categories > button:hover {
+		background-color: var(--liquidnodes-node-box);
 	}
 
 	.liquidnodes_context_category {
